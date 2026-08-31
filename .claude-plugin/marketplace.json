@@ -1,0 +1,13 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "web-builder-skills",
+  "description": "Internal marketplace for web-builder playbooks",
+  "owner": { "name": "Heinrich" },
+  "plugins": [
+    {
+      "name": "web-builder-skills",
+      "description": "Internal playbooks for building and launching client websites and apps: SEO, homepage sales copy, contact-form integration, and South Africa-first Terms of Use templates.",
+      "source": "./"
+    }
+  ]
+}
