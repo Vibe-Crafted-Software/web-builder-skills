@@ -36,10 +36,15 @@ requirements — `contact-form-integration`.
 Full question wording for every category is in the reference file. In
 brief:
 
-- **A. Business & product basics** — what the business does, the
-  public-facing trading name, industry/maturity, new build vs. rebuild
-  vs. CMS migration (and the current URL if one exists), the single most
-  important outcome the site must produce.
+- **A. Business & product basics** — first: is this a Vibe Crafted
+  Software (VCS) app's Milestone 2 pitch/marketing site (per the
+  `app-standards` plugin), or an unrelated client project? If VCS: which
+  app/module, and is that module's brief available to pull Purpose/
+  audience content from rather than re-deriving it fresh here? Then:
+  what the business does, the public-facing trading name, industry/
+  maturity, new build vs. rebuild vs. CMS migration (and the current URL
+  if one exists), the single most important outcome the site must
+  produce.
 - **B. Audience** — who the primary visitor is, whether there are
   multiple segments, where they currently find businesses like this.
 - **C. Competitors named by the client** — 2-5 real names/URLs (seeds
@@ -48,7 +53,13 @@ brief:
   inspiration).
 - **D. Brand assets available** — logo files, existing palette/style
   guide, fonts, owned/licensed imagery vs. needing stock, existing
-  collateral.
+  collateral. **If this is a VCS pitch site (per Category A), skip
+  asking for a color palette** — apply vibecraftedsoftware.com's
+  monochrome system directly (full values in the reference file): an
+  11-step grayscale ramp, ink at `#0C0C0C`, no other hue except a red
+  form-validation error state. The app's own name/icon (from its module
+  brief) still supplies the logo/wordmark — the monochrome palette is
+  what's copied from vibecraftedsoftware.com, not its logo.
 - **E. Pages & features needed** — the actual nav list (this becomes
   `website-build-standards`'s folder tree directly), any page outside
   the main nav, any feature beyond static content (a contact form →
@@ -66,7 +77,10 @@ brief:
   live site that must keep working during transition. Hands directly to
   `website-deployment`.
 - **H. Budget & timeline** — launch date, fixed deadlines, budget band,
-  any phasing.
+  any phasing. For a VCS pitch site this is usually an internal
+  milestone deliverable, not a billed client engagement — confirm
+  whether a real budget/timeline answer even applies before pushing for
+  one.
 - **I. Examples & inspiration** — 2-3 liked sites and specifically what
   about them, plus anything specifically disliked and why.
 - **J. Voice & tone (baseline)** — formal/casual, technical/plain,

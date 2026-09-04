@@ -7,6 +7,26 @@ example for the `project-discovery` skill.
 
 ### A. Business & product basics
 
+**VCS pitch-site check — ask this first**, since the answer changes how
+several later categories get answered:
+
+- Is this a Vibe Crafted Software (VCS) app's **Milestone 2 pitch/
+  marketing site**, or an unrelated client project? (Per the
+  `app-standards` plugin: Milestone 2 is a temporary, pre-schema,
+  stakeholder-facing pitch site for a module's spec — problem, solution,
+  who it's for — published as a Claude Artifact, built with a subset of
+  this plugin's skills. It is not the app's real production marketing
+  site, which app-standards has live in the app's own Next.js repo.)
+- If VCS: which app/module is this for? Is that module's brief (its
+  Purpose/audience section) actually available to pull content from,
+  rather than re-deriving business/audience facts fresh in this
+  checklist? Name it — don't assume one exists.
+- If VCS, this also affects **D** (skip the palette question — use
+  vibecraftedsoftware.com's monochrome system) and **H** (this is
+  usually an internal deliverable, not a billed engagement).
+
+Then the general business basics:
+
 - What does the business do, in one or two plain sentences?
 - What public-facing trading name should appear on the site? (Not
   registration paperwork — that's `terms-of-use-website`'s job if/when a
@@ -38,6 +58,38 @@ example for the `project-discovery` skill.
   inspiration" (I) instead.
 
 ### D. Brand assets available
+
+**If this is a VCS pitch site (per A), skip the palette question below**
+— apply vibecraftedsoftware.com's monochrome system directly, confirmed
+from its actual live stylesheet (`assets/css/style.css`):
+
+```
+--gray-950: #050505
+--gray-900: #0c0c0c   ← the brand's "ink" value
+--gray-800: #262626
+--gray-700: #404040
+--gray-600: #525252
+--gray-500: #6b6b6b
+--gray-400: #a3a3a3
+--gray-300: #d4d4d4
+--gray-200: #e5e5e5
+--gray-100: #f0f0f0
+--gray-50:  #f7f7f7
+```
+
+Zero hue anywhere else in the live site — the only documented exception
+is a red form-validation error state (`#b91c1c` text on a light red
+background), which is a functional/system signal, not a brand accent,
+and should be used the same way here (error states only, never as a
+decorative color). Two indigo/teal tokens exist in that site's CSS as an
+explicitly-unused, reserved-for-later placeholder — they are **not**
+part of the current style; don't apply them.
+
+The app's own name/icon (from its module brief) still supplies the
+logo/wordmark for this pitch site — the monochrome *palette* is what's
+copied from vibecraftedsoftware.com, not its logo or wordmark.
+
+For a non-VCS project, ask the general brand questions:
 
 - Actual logo files (vector if available — not a description of one).
 - Existing color palette/style guide, if any.
@@ -116,6 +168,11 @@ Verify these rather than relying on the client's recollection (a quick
 playbook acts directly on this answer.
 
 ### H. Budget & timeline
+
+For a VCS pitch site (per A), this is usually an internal milestone
+deliverable rather than a billed engagement — confirm whether a real
+budget/timeline answer even applies before pushing the client-style
+questions below onto a stakeholder review date instead.
 
 - Target launch date, and any fixed external deadline.
 - Approximate budget band, if shared — this affects scope decisions
@@ -205,6 +262,9 @@ repo).
 Prepared: {{DATE}}
 
 ## A. Business & product basics
+- VCS Milestone 2 pitch site: {{IS_VCS_SITE}} (yes/no)
+- If yes, app/module: {{VCS_MODULE_NAME}} — module brief available:
+  {{VCS_BRIEF_AVAILABLE}}
 - What the business does: {{BUSINESS_SUMMARY}}
 - Trading name for the site: {{TRADING_NAME}}
 - Industry/maturity: {{INDUSTRY_MATURITY}}
@@ -223,7 +283,9 @@ Prepared: {{DATE}}
 
 ## D. Brand assets available
 - Logo: {{LOGO_STATUS}}
-- Palette/style guide: {{PALETTE_STATUS}}
+- Palette/style guide: {{PALETTE_STATUS}} (if VCS pitch site: "VCS
+  monochrome — see project-discovery reference for the exact grayscale
+  ramp")
 - Fonts: {{FONT_STATUS}}
 - Imagery: {{IMAGERY_STATUS}}
 - Existing collateral: {{COLLATERAL}}
@@ -335,6 +397,11 @@ Prepared: 2026-09-04
 
 - [ ] Every checklist category (A-J) is answered, or explicitly logged
   under Open Questions — no fabricated placeholder answers.
+- [ ] The VCS pitch-site question (A) is answered explicitly (not
+  skipped as "probably no"). If yes: the app/module and its brief are
+  named, Section D specifies the monochrome palette rather than a fresh
+  color request, and Section H's budget/timeline question was reframed
+  or explicitly waived as an internal deliverable.
 - [ ] Every competitor research note has a source URL and an access
   date.
 - [ ] Section E's nav list is unambiguous enough to build a folder
