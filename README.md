@@ -24,7 +24,9 @@ Nine skills, one plugin (`skills/<name>/SKILL.md` + a
   standard (vanilla HTML/CSS/JS, folder-per-page mirroring the nav, one
   central stylesheet) and the checklist for stripping WordPress/CMS
   fingerprints out of a migrated site.
-- **`website-seo`** — technical/content SEO setup and ongoing cadence.
+- **`website-seo`** — technical/content SEO setup and ongoing cadence,
+  plus a full migration checklist for redesigning/replatforming an
+  existing, already-ranking site without losing its rankings.
 - **`website-sales-tool`** — turning a homepage into a sales-pitch funnel.
 - **`contact-form-integration`** — wiring a site's contact form to a
   shared relay backend.
@@ -33,7 +35,8 @@ Nine skills, one plugin (`skills/<name>/SKILL.md` + a
   checks) as dev-only tooling that never ships to the static host.
 - **`website-deployment`** — hosting each client site on AWS (S3 +
   CloudFront + Route 53 + ACM), the least-privilege IAM role to do it,
-  the routine deploy, and moving a domain's DNS to Route 53.
+  the routine deploy, moving a domain's DNS to Route 53, and serving a
+  site-relaunch's 301 redirect map via a CloudFront KeyValueStore.
 - **`terms-of-use-website`** — a South Africa-first Website Terms of Use
   template.
 - **`terms-of-use-software`** — a South Africa-first Software Terms of
