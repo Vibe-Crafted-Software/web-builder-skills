@@ -30,6 +30,10 @@ repeatable deploy, and moving a domain's DNS to Route 53.
   DNS-hosted → `project-discovery`'s intake checklist. This skill's
   Domain DNS migration section assumes that's already answered — it
   isn't a discovery step in itself.
+- Which old URLs need to redirect and why, and the broader SEO strategy
+  behind a site relaunch → `website-seo`'s migration checklist. This
+  skill only implements the CloudFront/KVS mechanics once that map
+  exists.
 
 ## Architecture
 
@@ -60,9 +64,13 @@ from an existing admin identity in the same account:
   for a role that's manually assumed for infrequent, high-trust actions.
 - A customer-managed permissions policy scoped to exactly: S3 bucket and
   object management (scoped to the `site-*` wildcard), CloudFront Origin
-  Access Control / distribution / function management and cache
-  invalidation, ACM certificate request and management (locked to
-  `us-east-1`), and Route 53 hosted-zone creation plus record changes.
+  Access Control / distribution / function / KeyValueStore management
+  and cache invalidation, ACM certificate request and management
+  (locked to `us-east-1`), and Route 53 hosted-zone creation plus record
+  changes. Note that the KVS *data-plane* actions (reading/writing
+  redirect-map entries) live under a separate `cloudfront-keyvaluestore`
+  IAM action namespace, distinct from `cloudfront` itself, even though
+  the resource ARN is the same `key-value-store/*` path.
   Some actions structurally require `Resource: "*"` because they create
   or list resources that don't have an ARN yet (`CreateHostedZone`,
   `CreateDistribution`, `CreateOriginAccessControl`, `ListAllMyBuckets`)
@@ -142,6 +150,46 @@ this plugin repo, which has no knowledge of individual clients). If that
 file is ever lost, look the distribution up by its `Comment`/tag from
 step 7 above.
 
+## URL redirect map (site relaunch)
+
+When a redesign replaces a site that already has search-engine
+rankings, old URLs must 301-redirect to their new equivalents post-
+launch — see `website-seo` for which URLs to redirect and why. This
+section covers only the technical implementation on this stack.
+
+1. Merge redirect-lookup logic into the *same* CloudFront Function used
+   for the clean-URL rewrite (provisioning step 3) — a cache behavior
+   allows only one function per event type, and a function can have
+   only one KeyValueStore association, so this can't be a second
+   chained function. Check the redirect map first; fall through to the
+   existing index.html-append logic only on no match.
+2. Store the redirect map in a CloudFront KeyValueStore (KVS), not
+   inline in the function's own code — CloudFront Functions have a
+   hard, non-adjustable 10 KB total code-size quota, which realistically
+   caps an in-code map at roughly 100-150 short entries with zero
+   headroom; a KVS store holds up to 5 MB (tens of thousands of
+   entries), which is what AWS's own docs point to for exactly this
+   situation.
+3. Create the KVS once per relaunching site, importing the initial
+   redirect map from a `redirects.json` file (`{"/old/path/":
+   "/new/path/"}` pairs) via `aws cloudfront create-key-value-store
+   --import-source`, then associate it with the function via
+   `KeyValueStoreAssociations` in `update-function`.
+4. Add redirects after launch with `aws cloudfront-keyvaluestore
+   update-keys` (a *different* CLI service namespace than `cloudfront`,
+   though the ARN itself is a `cloudfront::...:key-value-store/*`
+   resource) — updates propagate to edge in roughly seconds, no
+   redeploy or republish of the function needed.
+5. Test with `aws cloudfront test-function` against sample old-URL and
+   pass-through event payloads before publishing — this catches
+   execution errors only, not live-distribution behavior, so still
+   verify with a real `curl -I` against a redirected URL after publish.
+
+Both CloudFront Function invocations and KVS reads stay inside AWS's
+always-free monthly tier (2M each) at this scale; KVS write-side API
+calls are billed per call, but a relaunch's occasional redirect-map
+updates cost cents at most.
+
 ## Domain DNS migration
 
 When a domain needs to move to Route 53 (DNS-only — this is sufficient
@@ -197,6 +245,12 @@ the domain should also change registrars.
 - Never widen this role's permissions "temporarily" for convenience —
   the explicit `Deny` in the policy exists specifically to make that
   harder to do by accident.
+- A redirect map that's grown past a "handful" of entries must live in
+  a KVS, not in the CloudFront Function's own code — the 10 KB code-size
+  limit is hard and non-adjustable, and there's no graceful failure mode
+  when it's exceeded (the function just won't publish). Don't start
+  in-code and plan to "migrate later" for a real site relaunch; start
+  with KVS.
 
 ## Verification checklist
 
@@ -213,6 +267,12 @@ records; `https://<domain>/`, a real folder-style page, and
 `Cache-Control` headers on one asset and one HTML page; the invalidation
 reached `Completed`; the live change is confirmed in a real browser, not
 just via `curl`.
+
+**URL redirect map**: every URL in `website-seo`'s redirect map was
+tested (`aws cloudfront test-function`) before publish; a real `curl -I`
+against a sample of redirected URLs post-publish returns `301` with the
+correct `Location`; the merged function still correctly falls through
+to clean-URL handling for a non-redirected page.
 
 **DNS migration**: every record from the pre-migration inventory exists
 in the new zone with matching values, MX/SPF/DKIM/DMARC checked

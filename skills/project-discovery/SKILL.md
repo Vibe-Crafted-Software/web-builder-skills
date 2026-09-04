@@ -69,8 +69,15 @@ brief:
   URL structure, RTL, legal-page coverage) is in the reference file — get
   a real answer to each rather than a one-word "yes."
 - **F. Existing content/copy status** — what already exists vs. needs
-  drafting, anything ranking that needs a preserved redirect on rebuild,
-  anything that must migrate verbatim.
+  drafting, anything that must migrate verbatim. Then, critically for a
+  rebuild: does this existing site have real search visibility
+  (rankings/traffic) worth protecting, not just content worth keeping?
+  If yes, this needs a formal SEO migration — hands directly to
+  `website-seo`'s migration checklist, which needs admin access to the
+  current site's Google Search Console and Analytics to even start (the
+  inventory of indexed/ranking URLs and backlinks comes from there, not
+  memory). Confirm that access exists now, before the migration is
+  underway.
 - **G. Domain & current hosting status** — does a domain already exist,
   where is it registered/DNS-hosted, is email running on it, is there a
   live site that must keep working during transition. Hands directly to

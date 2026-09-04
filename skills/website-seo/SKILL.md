@@ -1,6 +1,6 @@
 ---
 name: website-seo
-description: This skill should be used when the user asks to "improve SEO", "get a website found on Google", "set up Search Console or Bing Webmaster Tools", "write a sitemap or robots.txt", "add structured data / JSON-LD", "set up IndexNow", "plan a content or keyword strategy", or otherwise needs a website's technical or content SEO handled, one-off setup or ongoing maintenance.
+description: This skill should be used when the user asks to "improve SEO", "get a website found on Google", "set up Search Console or Bing Webmaster Tools", "write a sitemap or robots.txt", "add structured data / JSON-LD", "set up IndexNow", "plan a content or keyword strategy", "migrate a site's SEO", "redesign an existing website without losing rankings", "replatform or change domains without losing SEO", "build a redirect map for a site relaunch", or otherwise needs a website's technical or content SEO handled, one-off setup or ongoing maintenance, including migrating an existing, already-ranking site's SEO through a redesign, replatform, or domain change.
 version: 1.0.0
 ---
 
@@ -14,8 +14,9 @@ not broader brand/social strategy, not PR.
 ## When this applies
 
 Use when helping launch a new site's SEO foundation, auditing an existing
-site's SEO gaps, or handling the recurring weekly/monthly/quarterly SEO
-maintenance for a site already live.
+site's SEO gaps, migrating an already-ranking site's SEO through a
+redesign/replatform/domain change, or handling the recurring
+weekly/monthly/quarterly SEO maintenance for a site already live.
 
 ## Core one-off checklist (do in order, once)
 
@@ -46,6 +47,65 @@ maintenance for a site already live.
    needed.
 10. AI/answer-engine visibility rides on the same fundamentals as 3-4
     above — no separate workstream needed.
+
+## Site migration checklist (existing site with real rankings)
+
+Do this instead of (not in addition to) the core checklist above when
+the project is a redesign, replatform, CMS-to-static migration, or
+domain change for a site that already has real Search Console
+history — not a brand-new domain. `project-discovery` should already
+have flagged this (rebuild with real search visibility) and confirmed
+GSC/GA access; don't re-ask that here.
+
+1. Inventory every currently-indexed/ranking URL before touching
+   anything live — GSC's Coverage/Indexing report, GSC's Performance
+   report (prioritize by real clicks/impressions), the current
+   `sitemap.xml`, an independent full crawl, and GSC's Links report
+   (external-link equity) — not just the pages you remember.
+2. Build a 1:1 (or deliberate many-to-one merge) redirect map from that
+   inventory to the new URLs, using 301 (permanent) redirects, zero
+   redirect hops (old URL straight to its final destination, never
+   through an intermediate), and never a blanket redirect-everything-
+   to-the-homepage fallback — Google treats that as a soft-404 pattern
+   and it passes little to no ranking credit.
+3. For domain or subdomain changes only, use GSC's Change of Address
+   tool once the redirects are live (it validates a sample and forwards
+   signals for 180 days) — it doesn't apply to a same-domain URL
+   restructure, an HTTP→HTTPS move, or a design-only change with no URL
+   changes.
+4. Don't bundle a title/meta/H1/content rewrite into the same cutover
+   as the URL/design change — carry on-page copy over as-is (or with
+   minimal edits) through launch, and run any real content refresh as a
+   separate, later pass, so a ranking move afterward can be attributed
+   to one variable. Carry every JSON-LD block over into the new
+   templates and re-validate it (§4's tools above) rather than letting a
+   template rebuild silently drop it.
+5. Protect the staging environment with more than robots.txt alone —
+   HTTP Basic Auth (or an IP allowlist) as the primary gate, `noindex`
+   as a second layer, `robots.txt` disallow only as a courtesy third
+   layer — and explicitly verify the production `robots.txt` and
+   `noindex` state at launch. A staging `Disallow: /` surviving into
+   production is a well-documented, fast way to deindex an entire live
+   site.
+6. After cutover, crawl the full old-URL inventory (not a sample) to
+   confirm every one actually returns the right redirect, watch the
+   Coverage report daily for the first couple of weeks for a 404/error
+   spike, and treat organic traffic down >25-30% and not recovering
+   within about a month as a real problem worth investigating — a
+   normal dip resolves within 2-4 weeks.
+7. Keep every migration redirect live for at least 180 days, and
+   realistically closer to a year — this is how long full signal
+   transfer (including credit from third-party links to old URLs) can
+   take. Keep the same GA4 property/measurement ID through the
+   migration (even across a domain change) so historical trend
+   comparisons stay valid.
+
+The actual CloudFront/redirect implementation for this stack is
+`website-deployment`'s job, not this skill's — this checklist only
+decides which URLs redirect where and why. The full step-by-step
+version, exact redirect-mapping methodology, and every citation behind
+these corrections is in `references/website-seo.md` Part 7 — work from
+that version, not this summary, when actually running a migration.
 
 ## Corrections to stale/common advice — apply these, don't skip them
 

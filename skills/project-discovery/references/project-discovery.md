@@ -127,10 +127,31 @@ multi-language?"; get a real answer to each of these:
 ### F. Existing content/copy status
 
 - Does copy already exist per planned page, or does it need drafting?
-- Any existing indexed content ranking for real keywords that must be
-  preserved via a redirect on a rebuild?
 - Any content that must migrate verbatim (legal-sensitive copy,
   published case studies)?
+
+**SEO migration check** — ask this whenever A established the project is
+a rebuild of an existing, live site (not a brand-new domain):
+
+- Does this existing site have real search visibility worth protecting
+  — actual rankings, organic traffic, or indexed pages — or is it
+  effectively invisible in search already (a low-traffic brochure page,
+  a site that was never properly indexed)? Get an honest answer; don't
+  assume "yes, it needs a careful migration" just because a site exists.
+- If yes: this needs a **formal SEO migration**, not just "keep some old
+  content." Hand this directly to `website-seo`'s migration checklist
+  (Part 7) — that process starts with inventorying every currently
+  indexed/ranking URL and its backlinks, which requires **admin access
+  to the current site's Google Search Console and Google Analytics
+  property**. Confirm that access exists (or can be obtained) now,
+  before the migration is underway — discovering it's missing mid-
+  migration is far more costly than confirming it here.
+- This reuses Category A's "current URL" answer and Category G's
+  domain-change answer directly — don't re-ask either here. If G
+  established the domain itself is changing, flag that explicitly for
+  `website-seo`'s migration checklist, since that changes which parts of
+  it apply (GSC's Change of Address tool is domain/subdomain-change-only
+  — irrelevant for a same-domain redesign).
 
 ### G. Domain & current hosting status
 
@@ -289,8 +310,10 @@ Prepared: {{DATE}}
 
 ## F. Existing content/copy status
 - {{CONTENT_STATUS}}
-- Content requiring preserved redirects: {{REDIRECT_CANDIDATES}}
 - Content that must migrate verbatim: {{VERBATIM_CONTENT}}
+- Existing site has real search visibility worth protecting: {{HAS_SEO_VALUE}} (yes/no)
+- If yes — GSC access confirmed: {{GSC_ACCESS}} — GA access confirmed: {{GA_ACCESS}}
+- If yes — see `website-seo` migration checklist (Part 7)
 
 ## G. Domain & current hosting status
 - Existing domain: {{DOMAIN}}
@@ -393,6 +416,10 @@ Prepared: 2026-09-04
 - [ ] Section G has a definite yes/no on whether a domain already
   exists, and — if yes — its current registrar/DNS host is confirmed,
   not assumed.
+- [ ] For a rebuild of an existing live site, Section F has an explicit
+  yes/no on whether it has real search visibility worth protecting —
+  and if yes, GSC and GA access are confirmed before handing off to
+  `website-seo`'s migration checklist, not assumed to exist.
 - [ ] If the site needs more than one language, every language/
   translation sub-question is answered (languages, timing, depth,
   translation source, selection method, RTL, legal-page coverage) — not

@@ -23,7 +23,11 @@ rather than stated as plain fact, so you don't have to take it on faith.
 ## Part 1 — One-off technical foundation
 
 Work through this in order once, at launch (or now, if the site's
-already live and this wasn't done at launch).
+already live and this wasn't done at launch). If this is a rebuild of
+an existing site that already has real rankings/traffic, go to
+**Part 7** instead — it replaces this Part's assumptions with a
+migration-specific process; don't run this checklist blind on top of an
+already-indexed site.
 
 ### 1. DNS / hosting sanity
 
@@ -521,6 +525,253 @@ a compounding, multi-quarter investment, not a fast-payoff campaign.
 
 ---
 
+## Part 7 — Site migration & redesign (existing site with real rankings)
+
+Everything in Parts 1-6 assumes a new domain building organic
+visibility from zero. This Part is for the opposite case: an existing,
+already-indexed site with real rankings/traffic getting a redesign,
+replatform, CMS-to-static migration, or domain change. A botched
+migration can crater organic traffic for months or permanently — this
+checklist exists because that risk is real and well-documented, not
+theoretical.
+
+**Assumes**: `project-discovery` has already established that this is
+a rebuild (not a new build) with real search visibility worth
+protecting, confirmed GSC/GA access, and captured `{{OLD_SITE_URL}}` —
+don't re-derive any of that here. Also assumes the *implementation*
+mechanism for serving redirects (how a 301 actually gets served from a
+static, AWS-hosted site) is `website-deployment`'s concern — see that
+skill's "URL redirect map" section. This Part owns strategy, the
+redirect map itself, and GSC tooling, not the CloudFront/KVS mechanics.
+
+### 7.1 Inventory every currently-indexed/ranking URL
+
+Before building anything, assemble the full list of URLs actually worth
+protecting — from all of these sources, not just the pages you remember
+building:
+
+- **GSC Coverage/Indexing report** — every URL Google currently has
+  indexed for `{{OLD_SITE_URL}}`.
+- **GSC Performance report** — sort by clicks/impressions; these are
+  the highest-priority tier, since they're already earning real search
+  visibility.
+- **The current `sitemap.xml`** — the site's own declared canonical set.
+- **An independent full crawl** (a free-tier crawler is enough for a
+  small marketing site) — catches URLs that are still linked/indexed
+  but missing from the sitemap.
+- **GSC Links report** — "Top linked pages," for external backlink
+  equity a sitemap alone won't reveal. This report is a sample, not
+  exhaustive, per Google's own documentation — supplement with a
+  third-party backlink tool if the site is large enough that a perfect
+  1:1 map genuinely isn't feasible, and prioritize the redirect map by
+  this list first when it isn't.
+
+Union all four/five sources into one master list before writing a
+single redirect rule.
+
+### 7.2 Build the redirect map
+
+- **301 (permanent), never 302** — a 302 tells Google the old URL
+  should stay canonical, which is wrong for a permanent migration and
+  can leave both old and new URLs competing or the old one lingering in
+  the index.
+- **Map to the single true final destination — zero redirect hops.**
+  Old URL → new URL directly, never old → intermediate → new. Google's
+  own guidance tolerates up to 5 hops, recommends ≤3; the actual target
+  for a planned migration is 0.
+- **One-to-one where possible; deliberate many-to-one (merge) where a
+  genuine content match exists** — several old pages consolidating into
+  one stronger new page is a legitimate, common pattern.
+
+**Correction: never fall back to redirecting everything without a
+match to the homepage.** This is a well-documented anti-pattern, not a
+matter of taste — Google (including statements from Google's own John
+Mueller) treats a redirect to an irrelevant destination as a **soft
+404**: it gets re-crawled repeatedly but isn't indexed, and passes
+little to no ranking credit — functionally worse than just letting a
+genuinely valueless page 404/410. If a retired page has no reasonable
+new equivalent and no meaningful traffic/links, let it 404/410 rather
+than forcing a homepage redirect.
+
+**Correction: only a working 301 actually preserves backlink equity —
+don't plan on outreach to third-party sites to update their links.**
+Asking every external site linking to `{{OLD_SITE_URL}}` to update its
+link is unrealistic at scale; the redirect itself is what carries that
+equity forward, given enough time live (see §7.9).
+
+### 7.3 Domain/subdomain changes: GSC Change of Address tool
+
+Use this only if the domain or subdomain is actually changing (e.g.
+`{{OLD_DOMAIN}}` → `{{NEW_DOMAIN}}`). **It does not apply** to a
+same-domain URL restructure, an HTTP→HTTPS move, a www/non-www switch
+on the same domain, or a design/CMS change with no URL changes — those
+don't need it at all.
+
+- Verify **both** the old and new domain in Search Console under the
+  same account first.
+- **301 redirects must already be live** before filing — the tool
+  validates a sample of top URLs.
+- If moving domains, also verify and submit Change of Address for the
+  www, non-www, and any subdomain variants of the *old* domain, even
+  ones not actively serving traffic — Google's 2026 guidance update
+  treats each verified variant as its own property that needs its own
+  signal.
+- Effects (prioritized crawling of the new domain, signal forwarding)
+  last 180 days from filing — after that, Google treats the old domain
+  as unrelated if it's still live. That means the redirects themselves
+  need to stay live well past that window (see §7.9), not just the
+  tool's own signal-transfer period.
+
+### 7.4 Timing and rollout scope
+
+- **Small-to-medium site**: migrate everything at once — this helps
+  Google recognize it as a single coordinated move rather than
+  independent, unrelated changes.
+- **Large site**: migrating section-by-section is acceptable and makes
+  monitoring/rollback more tractable — just keep each section's own
+  redirect map complete before that section cuts over.
+- Schedule the cutover for a real traffic lull where possible, and
+  never mid-way through an unrelated infrastructure change.
+
+### 7.5 Don't bundle content/design/URL changes together
+
+**Correction: a redesign that changes visual design only — same URLs,
+same titles/meta/H1s, same copy, same internal links — gives Google no
+reason to re-evaluate a page at all.** Risk appears specifically when a
+URL/design migration *also* rewrites titles, meta descriptions, H1s, or
+restructures internal links in the same pass, because if rankings move
+afterward there's no way to isolate which change caused it.
+
+- Carry over existing title tags, meta descriptions, and H1s as-is (or
+  with only minimal, necessary edits) through the cutover itself.
+- Run any real on-page content refresh as a **separate, later pass**,
+  after the migration itself has stabilized in Search Console (§7.9's
+  weekly Coverage check turning quiet again is a reasonable go-ahead
+  signal).
+- Preserve the existing internal-link structure and anchor text where
+  the new nav/design reasonably allows — new internal links should
+  point straight at final new URLs, not through the redirect map.
+- **Carry every JSON-LD block over into the new templates.** JSON-LD's
+  separation from markup is exactly why it *can* survive a redesign
+  cleanly, but the common real-world failure is a rebuilt template
+  silently dropping the `<script type="application/ld+json">` block
+  entirely. Re-validate every page type with
+  [Rich Results Test](https://search.google.com/test/rich-results) and
+  [validator.schema.org](https://validator.schema.org/) (Part 1 §4's
+  tools) as an explicit migration gate, not an afterthought.
+
+### 7.6 Protect the staging environment correctly
+
+The specific, well-documented failure mode: a staging environment's
+`Disallow: /` (correct for staging) survives, unchanged, into the
+production `robots.txt` at launch — deindexing the entire live site
+within days. Two facts make this worse than it looks:
+
+- **`robots.txt` Disallow stops crawling, not indexing** — Google can
+  still list a blocked URL (with no snippet) if it's discovered via a
+  link elsewhere, so Disallow alone doesn't reliably keep a URL out of
+  the index.
+- **A `noindex` tag only works if the crawler can fetch the page** — if
+  `robots.txt` blocks the URL first, Googlebot never sees the `noindex`
+  tag, so blocking staging with `robots.txt` *and* relying on `noindex`
+  to keep it out of the index is actually contradictory.
+
+**Correct layering, staging → production:**
+
+1. **HTTP Basic Auth (or an IP allowlist)** as the primary gate —
+   crawlers can't authenticate, so they never see `robots.txt` or any
+   meta tag at all.
+2. **`noindex` meta tag / `X-Robots-Tag` header** as a second layer, in
+   case auth is ever misconfigured or bypassed.
+3. **`robots.txt` `Disallow: /`** only as a third, courtesy layer for
+   well-behaved crawlers — never the sole defense.
+
+**Explicit pre-launch and immediately-post-launch checklist item**:
+diff the production `robots.txt` against staging's, and confirm no
+`noindex` meta/header survived into production — this is an invisible
+config detail nobody notices until rankings collapse.
+
+### 7.7 Pre-launch testing
+
+- Test the full site (including every redirect in the map) against
+  staging before cutover.
+- Confirm Googlebot isn't blocked by a firewall/DoS rule using GSC's
+  URL Inspection tool on a few representative new URLs.
+- For a domain-level DNS cutover, lower DNS TTL at least a week ahead
+  of the move.
+- Remove every temporary crawl block (staging `robots.txt`/`noindex`)
+  as part of the cutover itself, not as a follow-up task — see §7.6.
+
+### 7.8 Cutover sequence
+
+1. Remove staging blocks; deploy the new site/DNS.
+2. Submit the new `sitemap.xml` in Search Console (and Bing Webmaster
+   Tools).
+3. If a domain/subdomain changed, file the Change of Address request
+   (§7.3) once redirects are confirmed live.
+4. Optionally keep the *old* sitemap live, temporarily, listing the old
+   URLs, to help crawlers rediscover them and hit the redirects sooner.
+   **Correction, since this gets oversold**: asked directly, Google's
+   John Mueller called this "fine, but I suspect the effect would be
+   minimal." Treat it as a harmless, low-confidence hedge, not a
+   load-bearing step. The redirects themselves, and the new sitemap, do
+   the real work.
+
+### 7.9 Post-migration monitoring
+
+- **Daily for the first ~1-2 weeks, then weekly** through the first
+  couple of months:
+  - **GSC Coverage/Indexing report** — watch for a spike in 404s,
+    "Redirect error," or a sudden drop in indexed-page count; this is
+    the earliest reliable signal something in the redirect map is
+    wrong.
+  - **A full redirect-verification crawl of the entire old-URL
+    inventory from §7.1** — checking actual HTTP status codes and final
+    destination for *every* old URL, not a spot-check sample. Even a
+    small gap in redirect coverage on a high-traffic old URL can cause
+    a disproportionate traffic drop.
+  - **Core Web Vitals** — a redesign/replatform is exactly the moment
+    field data (Part 1 §8's thresholds) can regress; check it, don't
+    assume the new templates are fine.
+  - **GSC Performance trend** against the pre-migration baseline.
+- **Escalation threshold**: if organic traffic is down more than
+  roughly 25-30% and hasn't stabilized within about a month, treat it
+  as a real problem and start a structured investigation (redirect
+  gaps, accidental noindex/robots blocks, and content-parity are the
+  first three things to re-check). A normal, well-executed migration's
+  dip typically resolves within 2-4 weeks; Google's own docs note full
+  resettling can take a few weeks to a few months, and complete
+  signal/link-credit transfer on a domain change can take up to the
+  ~180-day Change of Address window or longer — don't panic at week
+  one, but don't wait indefinitely past a month with no explanation
+  either.
+- **GSC Links report churn is expected, not necessarily bad**: a
+  redirect/canonical change can visibly reorder "Top linked pages"
+  simply because credit is being consolidated onto new URLs — that can
+  look like backlink loss when it's actually the migration working.
+
+### 7.10 Redirect duration
+
+Keep every migration redirect live for **at least 180 days, and
+realistically closer to a year** — this is how long Google's own
+guidance says full signal transfer (including reassigning credit from
+third-party links pointing at old URLs) can take. There's no penalty
+for leaving 301s in place indefinitely; the practical failure mode is
+removing them too early, not too late.
+
+### 7.11 Analytics continuity
+
+**Keep the same GA4 property/measurement ID through the migration —
+even across a domain change** — so historical trend comparisons across
+the cutover stay valid. A GA4 property is defined by its Measurement
+ID, not rigidly tied to one domain; retarget the existing property's
+data stream to the new domain/design rather than starting a new
+property. Only create a genuinely new property if the migration also
+represents a distinct new business entity that needs to be tracked
+completely separately going forward.
+
+---
+
 ## Verification / regression checks
 
 See the `website-testing` skill for how to set up (or extend) an
@@ -544,3 +795,13 @@ not cover: paid search campaigns (Google Ads, Microsoft Ads) and their
 budget/bidding/conversion-tracking setup, broader brand or social-media
 marketing strategy, or PR beyond the backlink-adjacent tactics in
 Part 3. Those are separate concerns with their own playbooks.
+
+Part 7's migration checklist assumes `project-discovery` has already
+established that this is a rebuild of an existing, already-live site
+and captured the current live URL, GSC access, and GA access — it does
+not re-derive or re-ask that here. It also does not cover the actual
+redirect *implementation* mechanism — how 301s get served from a
+static, AWS-hosted site (a CloudFront Function keyed off a redirect
+map) is `website-deployment`'s concern; this skill owns migration
+strategy, the redirect map, and GSC tooling, not the CloudFront/KVS
+mechanics.

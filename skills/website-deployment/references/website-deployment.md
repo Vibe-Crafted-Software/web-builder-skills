@@ -163,6 +163,38 @@ wanted, drop the entire `Condition` block (not an empty object).
       "Resource": "arn:aws:cloudfront::{{AWS_ACCOUNT_ID}}:function/*"
     },
     {
+      "Sid": "CloudFrontKVSCreateAndList",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateKeyValueStore",
+        "cloudfront:ListKeyValueStores"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudFrontKVSManage",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:DescribeKeyValueStore",
+        "cloudfront:DeleteKeyValueStore",
+        "cloudfront:UpdateKeyValueStore"
+      ],
+      "Resource": "arn:aws:cloudfront::{{AWS_ACCOUNT_ID}}:key-value-store/*"
+    },
+    {
+      "Sid": "CloudFrontKVSDataPlane",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront-keyvaluestore:DescribeKeyValueStore",
+        "cloudfront-keyvaluestore:ListKeys",
+        "cloudfront-keyvaluestore:GetKey",
+        "cloudfront-keyvaluestore:PutKey",
+        "cloudfront-keyvaluestore:DeleteKey",
+        "cloudfront-keyvaluestore:UpdateKeys"
+      ],
+      "Resource": "arn:aws:cloudfront::{{AWS_ACCOUNT_ID}}:key-value-store/*"
+    },
+    {
       "Sid": "CloudFrontTagging",
       "Effect": "Allow",
       "Action": [
@@ -248,12 +280,24 @@ wanted, drop the entire `Condition` block (not an empty object).
 **Why some statements use `Resource: "*"`**: `CreateHostedZone`,
 `ListHostedZones(ByName)`, `CreateDistribution`, `ListDistributions`,
 `CreateOriginAccessControl`, `ListOriginAccessControls`, `CreateFunction`,
-`ListFunctions`, and `ListAllMyBuckets` all either create a resource that
-has no ARN yet, or list resources account-wide by definition — there is
-no tighter resource form the AWS API supports for these specific actions.
-Every action in this policy that manages an *already-existing* resource
+`ListFunctions`, `CreateKeyValueStore`, `ListKeyValueStores`, and
+`ListAllMyBuckets` all either create a resource that has no ARN yet, or
+list resources account-wide by definition — there is no tighter
+resource form the AWS API supports for these specific actions. Every
+action in this policy that manages an *already-existing* resource
 (`Get*`/`Update*`/`Delete*`/`CreateInvalidation`/tagging) is scoped to
 that resource type's ARN pattern instead.
+
+**KVS data-plane actions live under a separate IAM namespace**:
+`cloudfront-keyvaluestore:*` (reading/writing redirect-map entries) is a
+distinct IAM action namespace from `cloudfront:*` (managing the KVS
+resource itself — create/describe/delete), even though both sets of
+actions apply to the same `key-value-store` ARN path. Both are needed:
+the `cloudfront:*` statements let this role create and manage the store
+as an AWS resource; the `cloudfront-keyvaluestore:*` statement lets it
+actually read/write the redirect entries inside it (used by §4.6's
+`aws cloudfront-keyvaluestore update-keys`, which is itself a different
+CLI service namespace than plain `aws cloudfront`).
 
 **ACM's region lock uses two mechanisms at once**: `RequestCertificate`/
 `ListCertificates` can't be pre-scoped to an ARN (the cert doesn't exist
@@ -626,9 +670,185 @@ with `aws cloudfront list-distributions --query "DistributionList.Items[?Comment
 checking tags on candidate distributions (relies on the `domain` tag from
 the same step).
 
-## 4. Domain DNS migration
+## 4. URL redirect map (site relaunch)
 
-### 4.1 Inventory the existing DNS first
+When a redesign replaces a site that already has search-engine
+rankings, `website-seo`'s migration checklist produces a redirect map
+(old URL → new URL). This section covers only how those 301s actually
+get served from this stack — see `website-seo` for which URLs redirect
+and why.
+
+### 4.1 Why this must be merged into the existing CloudFront Function
+
+Two platform limits make this a modification of the existing
+clean-URL-rewrite function (§2.1), not a second function:
+
+- A CloudFront cache behavior allows only **one function association
+  per event type** — `viewer-request` already has the clean-URL
+  function attached; there's no way to attach a second one alongside it.
+- A CloudFront Function can have only **one KeyValueStore association**.
+
+So the redirect lookup runs first, inside the same function; if the
+requested URI isn't in the redirect map, execution falls through
+unchanged into the existing index.html-append logic.
+
+### 4.2 Why the map lives in a KeyValueStore, not in-code
+
+CloudFront Functions have a **hard, non-adjustable 10 KB total code-size
+quota** — AWS's own documentation for this exact quota points at
+KeyValueStore as the intended solution for anything beyond trivial
+in-code data: *"To store additional data for your CloudFront Functions,
+create a key value store and add your key-value pairs."* A real
+redirect entry (`"/2019/03/old-post-slug/":"/blog/new-post-slug/",`)
+runs roughly 55-70 bytes; after the function's own handler code, that
+leaves realistically **100-150 short entries** before risking the hard
+limit — too small for a full legacy WordPress site's URL inventory,
+with zero headroom for adding more later. A CloudFront KeyValueStore
+(KVS) holds up to **5 MB per store** (tens of thousands of entries),
+which is what this skill uses instead, always, rather than starting
+in-code and migrating later under client pressure.
+
+### 4.3 Merged CloudFront Function
+
+Replaces the function from §2.1 (same name, same `viewer-request`
+association — this is an update, not a new function):
+
+```javascript
+import cf from 'cloudfront';
+
+async function handler(event) {
+    var request = event.request;
+    var uri = request.uri;
+
+    // 1. Redirect map lookup (KVS) - runs first, before any URL rewriting
+    try {
+        var kvsHandle = cf.kvs();
+        var newPath = await kvsHandle.get(uri);
+        return {
+            statusCode: 301,
+            statusDescription: 'Moved Permanently',
+            headers: { "location": { "value": newPath } }
+        };
+    } catch (err) {
+        // no match in the redirect map - fall through to clean-URL handling
+    }
+
+    // 2. Existing clean-URL fix (S3-via-OAC doesn't auto-append index.html)
+    if (uri.endsWith('/')) {
+        request.uri += 'index.html';
+    } else if (!uri.substring(uri.lastIndexOf('/') + 1).includes('.')) {
+        request.uri += '/index.html';
+    }
+
+    return request;
+}
+```
+
+Keys must match the *exact* incoming `request.uri`, including a
+trailing slash if the old URL had one — the KVS lookup happens before
+any slash-normalization, so `/old-page` and `/old-page/` are different
+keys if the old site served both.
+
+### 4.4 `redirects.json` (the redirect map, one-time authoring format)
+
+```json
+{
+  "/old-blog/2019/03/old-post-slug/": "/blog/new-post-slug/",
+  "/old-services.html": "/services/",
+  "/old-services/web-design.html": "/services/web-design/"
+}
+```
+
+### 4.5 Create the KVS and wire it into the function
+
+```bash
+# 1. Upload redirects.json to a scratch S3 location the KVS import can read
+aws s3 cp redirects.json s3://{{IMPORT_BUCKET}}/redirects-kvs-import.json
+
+# 2. Create the KVS, importing the initial map (import only works at creation time)
+aws cloudfront create-key-value-store \
+  --name redirect-map-example-com \
+  --comment "301 redirect map for example.com relaunch" \
+  --import-source SourceType=S3,SourceARN=arn:aws:s3:::{{IMPORT_BUCKET}}/redirects-kvs-import.json
+  # capture Id/ARN -> {{KVS_ARN}}
+
+# 3. Update the existing clean-url-rewrite function: bump runtime if needed,
+#    replace its code (section 4.3 above), and associate the KVS
+aws cloudfront update-function \
+  --name clean-url-rewrite \
+  --if-match {{FUNCTION_ETAG}} \
+  --function-config Comment="Clean-URL rewrite + redirect map",Runtime=cloudfront-js-2.0,KeyValueStoreAssociations={Quantity=1,Items=[{KeyValueStoreARN={{KVS_ARN}}}]} \
+  --function-code fileb://clean-url-rewrite.js
+
+# 4. Publish
+aws cloudfront publish-function --name clean-url-rewrite --if-match {{NEW_ETAG}}
+```
+
+### 4.6 Add or change redirects after launch (no redeploy needed)
+
+Uses a **separate CLI service namespace**, `cloudfront-keyvaluestore` —
+not `cloudfront` — even though the resource ARN is the same
+`key-value-store/*` path. Writes are optimistic-locked by `ETag`:
+
+```bash
+aws cloudfront-keyvaluestore describe-key-value-store --kvs-arn {{KVS_ARN}}
+# capture ETag
+
+aws cloudfront-keyvaluestore update-keys \
+  --kvs-arn {{KVS_ARN}} \
+  --if-match {{ETAG}} \
+  --puts '[{"Key":"/another-old-path/","Value":"/its/new/path/"}]'
+```
+
+Updates propagate to all edge locations in roughly seconds — no
+function republish, no cache invalidation, no waiting for the 5-15
+minute distribution-propagation window that a `create-distribution`/
+`update-distribution` change requires.
+
+### 4.7 Test before publishing, verify after
+
+```bash
+# Unit-test the function logic against a sample event, before publishing
+aws cloudfront test-function \
+  --name clean-url-rewrite \
+  --if-match {{ETAG}} \
+  --event-object fileb://event-redirect-test.json \
+  --stage DEVELOPMENT
+```
+
+`event-redirect-test.json` sets `request.uri` to a known old path (see
+`functions-event-structure` in AWS's docs for the full event shape);
+check the returned `FunctionOutput` shows the expected 301/Location, and
+also test a known pass-through URI to confirm clean-URL handling still
+works. `test-function` only catches execution errors, not live-
+distribution behavior — after publishing, confirm with a real request:
+
+```bash
+curl -I https://example.com/old-services.html
+# expect: HTTP/2 301, location: https://example.com/services/
+```
+
+### 4.8 Cost
+
+Both CloudFront Function invocations and KVS reads (from inside the
+function) fall inside AWS's always-free monthly tier at this scale —
+2,000,000 invocations/month and 2,000,000 KVS reads/month, no expiry.
+KVS write-side API calls (`update-keys`, etc.) are billed per call
+(a flat rate, not per-key) — a relaunch's occasional redirect-map
+updates cost cents at most, never a real line item.
+
+### 4.9 IAM permissions
+
+The KVS create/manage and `cloudfront-keyvaluestore` data-plane
+statements this section's commands need are already included in the
+permissions policy in §1.3 (`CloudFrontKVSCreateAndList`,
+`CloudFrontKVSManage`, `CloudFrontKVSDataPlane`) — if the role was
+created before this section existed, update the policy to the current
+version in §1.3 rather than granting KVS access separately.
+
+## 5. Domain DNS migration
+
+### 5.1 Inventory the existing DNS first
 
 Query the domain's *current* authoritative nameservers directly (not a
 public resolver, to avoid stale caches) — prefer a zone-file export from
@@ -649,7 +869,7 @@ dig @<current-ns> example.com NS
 Also check for any other subdomains in active use (blog., shop., etc.)
 and any DKIM selector TXT records the mail provider documents.
 
-### 4.2 Create the zone and recreate records, in this order
+### 5.2 Create the zone and recreate records, in this order
 
 ```bash
 aws route53 create-hosted-zone --name example.com --caller-reference "example-com-migration-$(date +%s)"
@@ -662,7 +882,7 @@ same shape as §2.2 step 8. This ordering isn't cosmetic: email is the
 single biggest cutover risk, since a missed record silently breaks
 inbound or outbound mail with no obvious error at cutover time.
 
-### 4.3 Verify against the new zone before touching the registrar
+### 5.3 Verify against the new zone before touching the registrar
 
 ```bash
 aws route53 get-hosted-zone --id {{HOSTED_ZONE_ID}} --query "DelegationSet.NameServers"
@@ -671,12 +891,12 @@ dig @<route53-ns-1> example.com MX
 dig @<route53-ns-1> example.com TXT
 dig @<route53-ns-1> _dmarc.example.com TXT
 dig @<route53-ns-1> example.com A
-# ...confirm every value matches the §4.1 inventory exactly
+# ...confirm every value matches the §5.1 inventory exactly
 ```
 
-### 4.4 Cut over
+### 5.4 Cut over
 
-Only once §4.3 is fully clean: update the domain's nameservers at its
+Only once §5.3 is fully clean: update the domain's nameservers at its
 existing registrar (in that registrar's own dashboard — entirely outside
 AWS and this IAM role) to the 4 Route 53 NS records.
 
@@ -684,7 +904,7 @@ By this point you no longer control the old DNS host, so "lower the TTL
 in advance" isn't a lever you can pull retroactively — resolvers
 worldwide cache the old NS delegation for however long its TTL says
 (commonly 24-48h, sometimes controlled by the registry). The real
-mitigation already happened in §4.3: since the new zone is provably
+mitigation already happened in §5.3: since the new zone is provably
 correct before any resolver ever queries it, propagation delay only
 affects *when* a resolver picks up the right answer, never whether it's
 right once it does. Use `dig +trace example.com` or a multi-location
@@ -694,7 +914,7 @@ resolver as a broken record.
 Keep the old DNS provider/zone active and untouched for 48-72h after
 cutover before deleting anything there.
 
-### 4.5 Optional: full registrar transfer
+### 5.5 Optional: full registrar transfer
 
 Transferring the domain's *registration* into Route 53 Domains (making
 AWS the registrar of record) is a separate, optional, slower follow-up —
@@ -705,7 +925,7 @@ that is needed for hosting — the DNS-only migration above is completely
 sufficient — so only pursue it if the domain should also change
 registrars.
 
-## 5. Gotchas (full list)
+## 6. Gotchas (full list)
 
 - ACM for CloudFront must be requested in `us-east-1`, regardless of
   which region the S3 bucket or the client lives in — a hard CloudFront
@@ -738,8 +958,20 @@ registrars.
   actions as enumerated in §1.3 — never attach a broader managed policy
   "temporarily" for convenience; the explicit `Deny` statement exists
   specifically to make that mistake harder to make by accident.
+- A redirect map that's grown past a "handful" of entries must live in
+  a KVS, not in the CloudFront Function's own code — the 10 KB code-size
+  limit is hard and non-adjustable, with no graceful failure mode when
+  exceeded (the function just won't publish). Start with KVS for a real
+  site relaunch rather than planning to "migrate later."
+- A cache behavior allows only one function per event type and a
+  function only one KVS association — the redirect lookup must be
+  merged into the existing clean-URL function (§4.1), never added as a
+  second `viewer-request` function.
+- KVS lookup keys must match the incoming `request.uri` exactly,
+  including a trailing slash — a redirect map entry for `/old-page`
+  won't match a request for `/old-page/`, and vice versa.
 
-## 6. Full verification checklists
+## 7. Full verification checklists
 
 **Provisioning**:
 - [ ] Bucket exists, Block Public Access is fully `true` on all four
@@ -766,8 +998,21 @@ registrars.
 - [ ] The live site reflects the new content in a real browser, not just
   via `curl` (a browser's own cache can mask a broken deploy).
 
+**URL redirect map**:
+- [ ] `aws cloudfront test-function` passes for both a sample redirected
+  URI and a sample pass-through URI before publishing.
+- [ ] After publish, a real `curl -I` against several redirected URLs
+  returns `301` with the correct `Location`, and a non-redirected page
+  still resolves correctly (clean-URL fallback still works).
+- [ ] The KVS's key count/spot-checked entries match the source
+  `redirects.json` — a bad S3 import can silently truncate or malform
+  entries.
+- [ ] The role's permissions policy includes the `CloudFrontKVS*`
+  statements from §1.3 (not just the original policy without them, if
+  the role predates this section).
+
 **DNS migration**:
-- [ ] Every record from the pre-migration inventory (§4.1) exists in the
+- [ ] Every record from the pre-migration inventory (§5.1) exists in the
   new Route 53 zone with matching values — MX/SPF/DKIM/DMARC checked
   explicitly, not just "the site resolves."
 - [ ] Verified via `dig @<route53-ns>` directly, before the registrar's
