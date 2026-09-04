@@ -523,9 +523,8 @@ a compounding, multi-quarter investment, not a fast-payoff campaign.
 
 ## Verification / regression checks
 
-If the project has an automated test suite already (a Playwright suite
-that checks page health/meta tags is a natural place for this), extend
-it to assert, per page:
+See the `website-testing` skill for how to set up (or extend) an
+automated Playwright page-health check. It asserts, per page:
 
 - A meta description is present and within a reasonable length range.
 - The canonical tag is present and self-referencing.
@@ -533,8 +532,8 @@ it to assert, per page:
 - Valid JSON-LD is present where expected (e.g. Organization on the
   homepage, Article on blog posts).
 
-This is a natural extension of an existing page-health check, not a
-separate tool — it just needs the assertions added.
+See that skill's `references/website-testing.md` for the exact spec —
+don't re-derive the assertions here.
 
 ---
 

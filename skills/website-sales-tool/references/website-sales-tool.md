@@ -287,9 +287,10 @@ of content and avoids that entirely.
   as already-duplicated-elsewhere, or has a named destination page it
   was actually moved to (Part 4) — check this file by file, not by
   memory.
-- [ ] If the project has an automated test suite, run it after the
-  rewrite (meta tags, broken links, and structured data are exactly the
-  kind of thing a content rewrite can silently break).
+- [ ] Run the site's test suite after the rewrite — see the
+  `website-testing` skill for how to set one up if the project doesn't
+  have one yet. Meta tags, broken links, and structured data are exactly
+  the kind of thing a content rewrite can silently break.
 - [ ] Load the new homepage and every page that received relocated
   content, at a few viewport widths, and read it as a first-time visitor
   would — not just section by section in isolation.

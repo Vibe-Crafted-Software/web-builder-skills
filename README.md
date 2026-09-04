@@ -1,10 +1,11 @@
 # web-builder-skills
 
-Internal Claude Code plugin bundling six reusable "web builder"
+Internal Claude Code plugin bundling seven reusable "web builder"
 playbooks as Skills — vanilla HTML/CSS/JS build standards, SEO, homepage
-sales copy, contact-form integration, and South Africa-first Terms of Use
-templates (website + software). Originally drafted in the `VCS_Website`
-project; this repo is the maintained, cross-project source going forward.
+sales copy, contact-form integration, automated testing, and South
+Africa-first Terms of Use templates (website + software). Originally
+drafted in the `VCS_Website` project; this repo is the maintained,
+cross-project source going forward.
 
 **This is a private, internal tool.** It is never published to
 Anthropic's public plugin marketplace and is not intended for anyone
@@ -12,7 +13,7 @@ outside this project's own use.
 
 ## What's in it
 
-Six skills, one plugin (`skills/<name>/SKILL.md` + a
+Seven skills, one plugin (`skills/<name>/SKILL.md` + a
 `references/<name>.md` with the full playbook):
 
 - **`website-build-standards`** — the foundational stack/folder-structure
@@ -23,6 +24,9 @@ Six skills, one plugin (`skills/<name>/SKILL.md` + a
 - **`website-sales-tool`** — turning a homepage into a sales-pitch funnel.
 - **`contact-form-integration`** — wiring a site's contact form to a
   shared relay backend.
+- **`website-testing`** — automated Playwright/axe-core testing (page
+  health, broken links, contact-form, accessibility, responsive smoke
+  checks) as dev-only tooling that never ships to the static host.
 - **`terms-of-use-website`** — a South Africa-first Website Terms of Use
   template.
 - **`terms-of-use-software`** — a South Africa-first Software Terms of
@@ -62,6 +66,7 @@ skills/
   website-seo/
   website-sales-tool/
   contact-form-integration/
+  website-testing/
   terms-of-use-website/
   terms-of-use-software/
 ```

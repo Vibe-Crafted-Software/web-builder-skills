@@ -108,7 +108,8 @@ consult:
 
 - **`references/website-seo.md`** — the complete playbook
 
-If extending an existing project's automated test suite (e.g. a
-Playwright page-health check), the verification section of the reference
-file has the exact assertions to add: meta description length, canonical
-self-reference, full OG/Twitter set, JSON-LD validity.
+Automated verification of these tags (meta description length, canonical
+self-reference, full OG/Twitter set, JSON-LD validity) is covered by the
+`website-testing` skill's page-health checks — use that skill to add or
+run the Playwright suite rather than writing test assertions from scratch
+here.

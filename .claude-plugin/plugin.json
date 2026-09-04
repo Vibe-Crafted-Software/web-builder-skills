@@ -1,6 +1,6 @@
 {
   "name": "web-builder-skills",
-  "version": "1.1.0",
-  "description": "Internal playbooks for building and launching client websites and apps: vanilla HTML/CSS/JS build standards, SEO, homepage sales copy, contact-form integration, and South Africa-first Terms of Use templates.",
+  "version": "1.2.0",
+  "description": "Internal playbooks for building and launching client websites and apps: vanilla HTML/CSS/JS build standards, SEO, homepage sales copy, contact-form integration, automated testing, and South Africa-first Terms of Use templates.",
   "author": { "name": "Heinrich" }
 }

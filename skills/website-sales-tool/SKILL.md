@@ -126,9 +126,10 @@ thrown away even when the new homepage is better.
 - Every piece of removed content is either cited as already-duplicated,
   or has a named destination it was actually moved to — checked file by
   file, not from memory.
-- Run the project's test suite after the rewrite if one exists (meta
-  tags, broken links, structured data are exactly what a content rewrite
-  can silently break).
+- Run the site's automated test suite after the rewrite (see the
+  `website-testing` skill if one doesn't exist yet) — meta tags, broken
+  links, and structured data are exactly what a content rewrite can
+  silently break.
 - Load the new homepage and every page that received relocated content,
   at a few viewport widths, and read it as a first-time visitor would.
 - If the site alternates section background colors for visual rhythm,
