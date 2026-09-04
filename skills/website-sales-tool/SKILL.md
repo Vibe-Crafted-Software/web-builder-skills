@@ -27,6 +27,12 @@ skill), not a Terms of Use (see the `terms-of-use-website` /
 
 ## Discovery questions to ask before writing anything
 
+If this project has a `PROJECT_BRIEF.md` (see the `project-discovery`
+skill), read it first — it already has the business basics, audience,
+and named competitors; don't re-ask that ground. The questions below are
+copywriting-specific (problem framing, pricing/objections, voice, CTAs)
+and go deeper than the brief covers.
+
 Ask directly, in the business's own words — don't paraphrase an assumed
 answer and ask for confirmation; an open question gets better copy than
 anything invented.

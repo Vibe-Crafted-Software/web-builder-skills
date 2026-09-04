@@ -32,6 +32,12 @@ content. Does **not** cover:
 
 ## Before drafting — gather these facts (never guess or fabricate)
 
+This is a separate, document-sourced legal fact-gathering step —
+distinct from the general business/audience discovery in
+`project-discovery`, which can't supply a registration number, entity
+type, or VAT status; those must come from an actual incorporation
+certificate, not a conversation.
+
 - The legal entity name, registration number, entity type, and country
   of incorporation (from an actual incorporation certificate, e.g. CIPC
   in South Africa — never invent these).

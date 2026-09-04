@@ -10,7 +10,9 @@ Establish the foundation a client site is built on: the stack, the folder
 layout, and — when the source is a WordPress (or other CMS) export — the
 removal of every trace of that CMS. This is the upstream skill: apply it
 first, before `website-seo`, `website-sales-tool`,
-`contact-form-integration`, or the `terms-of-use-*` skills come into play.
+`contact-form-integration`, or the `terms-of-use-*` skills come into play
+— except `project-discovery`, which precedes even this: its Pages &
+features checklist decides the nav this skill turns into folders.
 
 ## Scope
 
@@ -35,6 +37,9 @@ If migrating off a CMS: no inline `<script>`/`<style>` blocks injected by
 former plugins may survive, even if they render invisibly today.
 
 ## Folder structure standard
+
+If a `PROJECT_BRIEF.md` exists (see `project-discovery`), its Pages &
+features section is the nav list to build this tree from directly.
 
 Folder-per-page, mirroring the nav menu, with clean URLs (no `.html` in
 links). The folder tree should be derivable just by reading the nav — no

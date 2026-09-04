@@ -41,6 +41,12 @@ redesign — those are separate, deliberately out of scope here.
 
 ## Part 1 — Discovery questions to ask before writing anything
 
+If this project has a `PROJECT_BRIEF.md` (see the `project-discovery`
+skill), read it first — it already has the business basics, audience,
+and named competitors; don't re-ask that ground. The questions below are
+copywriting-specific (problem framing, pricing/objections, voice, CTAs)
+and go deeper than the brief covers.
+
 Ask these directly, in the business's own words. Don't paraphrase an
 assumed answer and ask them to confirm it — an open question gets you
 their actual language, which is usually better copy than anything you'd

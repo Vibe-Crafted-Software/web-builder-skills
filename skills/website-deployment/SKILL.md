@@ -26,6 +26,10 @@ repeatable deploy, and moving a domain's DNS to Route 53.
   relay backend (`contact-form-integration`) runs in this same AWS
   account but is managed entirely separately; this role must never need
   or be granted access to it.
+- Whether a domain already exists, and where it's currently registered/
+  DNS-hosted → `project-discovery`'s intake checklist. This skill's
+  Domain DNS migration section assumes that's already answered — it
+  isn't a discovery step in itself.
 
 ## Architecture
 

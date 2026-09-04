@@ -63,6 +63,11 @@ maintenance for a site already live.
 
 ## Content strategy essentials
 
+If a `PROJECT_BRIEF.md` exists (see the `project-discovery` skill),
+start from its Research notes' seed-keyword list rather than re-deriving
+one from scratch; everything below is what happens after that seed
+list, not a duplicate of gathering it.
+
 Seed keyword research from the business itself (not a paid tool), expand
 with free tools (Google Keyword Planner, Google Trends, Bing Webmaster's
 Keyword Research tool), segment by funnel intent, and prioritize

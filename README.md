@@ -1,11 +1,12 @@
 # web-builder-skills
 
-Internal Claude Code plugin bundling eight reusable "web builder"
-playbooks as Skills — vanilla HTML/CSS/JS build standards, SEO, homepage
-sales copy, contact-form integration, automated testing, AWS
-hosting/deployment, and South Africa-first Terms of Use templates
-(website + software). Originally drafted in the `VCS_Website` project;
-this repo is the maintained, cross-project source going forward.
+Internal Claude Code plugin bundling nine reusable "web builder"
+playbooks as Skills — client/project discovery and competitor research,
+vanilla HTML/CSS/JS build standards, SEO, homepage sales copy,
+contact-form integration, automated testing, AWS hosting/deployment, and
+South Africa-first Terms of Use templates (website + software).
+Originally drafted in the `VCS_Website` project; this repo is the
+maintained, cross-project source going forward.
 
 **This is a private, internal tool.** It is never published to
 Anthropic's public plugin marketplace and is not intended for anyone
@@ -13,9 +14,12 @@ outside this project's own use.
 
 ## What's in it
 
-Eight skills, one plugin (`skills/<name>/SKILL.md` + a
+Nine skills, one plugin (`skills/<name>/SKILL.md` + a
 `references/<name>.md` with the full playbook):
 
+- **`project-discovery`** — client intake checklist plus live
+  competitor/market research, producing a standardized
+  `PROJECT_BRIEF.md` that every other skill below reads from.
 - **`website-build-standards`** — the foundational stack/folder-structure
   standard (vanilla HTML/CSS/JS, folder-per-page mirroring the nav, one
   central stylesheet) and the checklist for stripping WordPress/CMS
@@ -65,6 +69,7 @@ no per-project setup needed after the first install.
   plugin.json        - plugin manifest
   marketplace.json    - marketplace manifest (this repo is its own marketplace)
 skills/
+  project-discovery/
   website-build-standards/
   website-seo/
   website-sales-tool/
