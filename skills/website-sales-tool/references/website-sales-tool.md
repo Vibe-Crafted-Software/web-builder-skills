@@ -36,6 +36,9 @@ redesign — those are separate, deliberately out of scope here.
 4. **Handle existing homepage content per Part 4** — relocate what's
    still useful, don't just delete it.
 5. **Verify per Part 5** before shipping.
+6. **Instrument and follow up per Part 6** — a rewrite that verifies as
+   correct still needs to be measured to know if it actually converts
+   better.
 
 ---
 
@@ -130,6 +133,29 @@ invent.
   form, demo request, signup)? What's a lower-commitment secondary
   action (see a features page, see pricing)?
 
+### Language (if the site is multi-language)
+- Check `PROJECT_BRIEF.md`'s Section E (`project-discovery`) for whether
+  this site is multi-language. If it is, this playbook's persuasive
+  mechanisms — the "you're probably doing X" hook, objection framing,
+  idiom-dependent lines — rarely survive a literal, word-for-word
+  translation. Who actually owns adapting (transcreating) this copy per
+  language: a professional transcreation pass, or the client supplying
+  their own per-locale version?
+- Should the discovery answers themselves differ by market — e.g. do
+  prospects in different locales raise different objections, or does
+  the "obvious alternative" being positioned against vary by market? If
+  so, run this discovery section once per language/market rather than
+  once globally and translating the result.
+
+### When answers genuinely aren't available yet
+- If the business is slow to respond or some answers just aren't
+  available on a reasonable timeline, don't invent them to finish the
+  page. Ship a rewrite covering only the sections with real answers,
+  leave the existing homepage copy in place for sections without one,
+  and log what's missing explicitly (mirroring `project-discovery`'s own
+  "log it under Open Questions, never fabricate" discipline) rather than
+  blocking the entire rewrite indefinitely or guessing to fill the gap.
+
 ---
 
 ## Part 2 — The page structure
@@ -143,8 +169,16 @@ than padding to hit a count.
 Reuse your site's *existing* design-system components (cards, grids,
 buttons, section-alternating backgrounds) for every section below — a
 homepage rewrite is not the moment to invent a new visual language. If
-your project has a components inventory or style guide, read it before
-drafting a single section.
+your project has a components inventory or style guide (see
+`website-build-standards`), read it before drafting a single section.
+
+**If `PROJECT_BRIEF.md` recorded a strict monochrome style** (the
+`project-discovery` VCS style question), the primary-vs-secondary CTA
+distinction below can't rely on color the way a filled-colored-button
+convention normally does. Achieve the same hierarchy through weight
+(bold vs. regular), fill vs. outline, size, or position instead, and
+confirm with whoever implements the design that the distinction still
+reads clearly in grayscale before treating the copy draft as final.
 
 **Hero**
 - Eyebrow: names the audience/situation in one line: `{{AUDIENCE_OR_SITUATION_LINE}}`
@@ -196,11 +230,14 @@ drafting a single section.
 
 ---
 
-## Part 3 — Conversion-copy conventions
+## Part 3 — Conversion-copy conventions (current best-practice consensus)
 
-Corrections to common copywriting instinct, grounded in current
-(2026) B2B/SaaS conversion research — called out explicitly rather than
-stated as plain fact, so you can weigh them against your own case.
+Corrections to common copywriting instinct, reflecting current,
+broadly-corroborated B2B/SaaS conversion-copywriting practice — called
+out explicitly rather than stated as plain fact, so you can weigh them
+against your own case. These are consensus practice, not the output of
+one specific controlled study on this exact claim — treat them as
+strong defaults, not settled law.
 
 - **Five-second clarity rule.** A visitor should be able to answer "what
   problem, what product, who for" within five seconds of landing — a
@@ -303,6 +340,30 @@ of content and avoids that entirely.
 - [ ] If the site alternates section background colors (or any other
   repeating visual rhythm) for rhythm/scanability, confirm inserting or
   removing sections didn't leave two matching sections back to back.
+
+## Part 6 — Measuring whether the rewrite actually works
+
+Part 5's checklist verifies the rewrite is *correct* — it doesn't tell
+you whether it *converts* better than what it replaced. Before calling
+the project fully done:
+
+- [ ] Capture a baseline before publishing: the current conversion
+  rate/count on the primary action (form submissions, demo requests)
+  over a comparable prior period, from whatever analytics tool the site
+  already has (see `website-seo`'s analytics section for setup if none
+  exists yet).
+- [ ] Instrument the new primary CTA — and secondary, if present — with
+  a distinct event/goal, so post-launch performance is actually
+  measurable per-CTA, not just as an aggregate page-visit number.
+- [ ] Treat the new copy as a hypothesis, not a finished artifact — plan
+  a follow-up review (e.g. 4-6 weeks post-launch) comparing the new
+  numbers against the pre-rewrite baseline, and be willing to revise a
+  section that isn't converting rather than treating this rewrite as
+  one-and-done.
+- [ ] Full A/B testing (running old and new copy simultaneously) is a
+  legitimate next step once there's enough traffic to reach
+  significance — mention it as an option to the business, but don't
+  block shipping this rewrite on setting it up.
 
 ## Closing scope note
 

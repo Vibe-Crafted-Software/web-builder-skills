@@ -50,6 +50,7 @@ pattern — don't assume one:
 | FTP/SFTP client          | An ignore list / sync profile excluding the same paths              |
 | Static host build setting | A "publish directory" set to the site root only (e.g. `public/`, or the folder-per-page root), never the repo root |
 | Git-based deploy (host builds from a branch) | A `.deployignore`/host-specific ignore file, or keep the test harness in a separate branch/folder the host doesn't build from |
+| AWS S3 sync (this plugin's `website-deployment`) | Automatic, not an explicit flag — `aws s3 sync` only uploads whatever local folder its command targets, so exclusion just means `tests/`, `node_modules/`, `package*.json`, and `playwright.config.js` must live outside that synced folder |
 
 ## 2. `playwright.config.js`
 
@@ -104,11 +105,14 @@ for (const pagePath of pagesFromSitemap()) {
     // Title
     await expect(page).toHaveTitle(/.+/);
 
-    // Meta description
+    // Meta description — enforce the actual reasonable range (website-seo
+    // targets ~140-160 chars; a floor well short of that avoids false
+    // failures on legitimately shorter pages while still catching a
+    // near-empty or placeholder description)
     const description = page.locator('meta[name="description"]');
     await expect(description).toHaveCount(1);
     const content = await description.getAttribute('content');
-    expect(content && content.length).toBeGreaterThan(0);
+    expect(content?.length ?? 0).toBeGreaterThanOrEqual(50);
     expect(content.length).toBeLessThanOrEqual(160);
 
     // Self-referencing canonical
@@ -131,13 +135,26 @@ for (const pagePath of pagesFromSitemap()) {
     for (const block of jsonLdBlocks) {
       expect(() => JSON.parse(block)).not.toThrow();
     }
+
+    // Multi-language sites only: hreflang tags must be present and
+    // reciprocal (every language variant links to every other, including
+    // itself) - delete this block for a single-language site
+    const hreflangLinks = await page.locator('link[rel="alternate"][hreflang]').all();
+    if (hreflangLinks.length > 0) {
+      const hreflangValues = await Promise.all(hreflangLinks.map((l) => l.getAttribute('hreflang')));
+      expect(hreflangValues).toContain('x-default');
+    }
   });
 }
 ```
 
 This mirrors `website-seo`'s assertion list exactly — extend the JSON-LD
 check per page type (Organization on the homepage, Article on blog posts)
-rather than inventing new requirements here.
+rather than inventing new requirements here. The hreflang block is a
+starting point, not a full reciprocity check (that requires fetching
+every linked variant and confirming each one links back) — extend it if
+the site is genuinely multi-language rather than relying on this
+presence-only version.
 
 ## 4. `tests/links.spec.js`
 
@@ -233,7 +250,50 @@ Sample output:
 404 https://old-partner-site.example.com/page  <- worth investigating
 ```
 
-## 5. `tests/contact-form.spec.js`
+## 5. `tests/redirects.spec.js` (site relaunch only)
+
+Only relevant when a redirect map exists (`website-deployment`'s
+`redirects.json`, produced from `website-seo`'s migration checklist).
+Skip this spec entirely for a brand-new site with no prior URLs.
+
+```js
+// tests/redirects.spec.js
+const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
+
+const redirectMapPath = path.join(__dirname, '../redirects.json');
+const redirects = fs.existsSync(redirectMapPath)
+  ? JSON.parse(fs.readFileSync(redirectMapPath, 'utf8'))
+  : {};
+
+for (const [oldPath, newPath] of Object.entries(redirects)) {
+  test(`redirect: ${oldPath} -> ${newPath}`, async ({ request, baseURL }) => {
+    const response = await request.get(new URL(oldPath, baseURL).toString(), {
+      maxRedirects: 0,
+    });
+    expect(response.status(), oldPath).toBe(301);
+    const location = response.headers()['location'];
+    expect(new URL(location, baseURL).pathname, oldPath).toBe(newPath);
+  });
+}
+
+test('redirect map is not empty on a relaunch', () => {
+  test.skip(!fs.existsSync(redirectMapPath), 'No redirects.json — brand-new site, nothing to verify.');
+  expect(Object.keys(redirects).length).toBeGreaterThan(0);
+});
+```
+
+This asserts every entry gets a **single-hop** 301 to the **exact**
+expected destination — not "redirects somewhere" — matching
+`website-seo`'s zero-redirect-hops rule and `website-deployment`'s
+`aws cloudfront test-function`/`curl -I` spot-checks, but covering the
+*entire* map instead of a sample. Run this against the live/staging
+domain post-cutover, not just the local dev server, since the redirect
+logic lives in the CloudFront Function/KVS, not in anything this local
+`playwright.config.js` serves.
+
+## 6. `tests/contact-form.spec.js`
 
 ```js
 // tests/contact-form.spec.js
@@ -270,7 +330,7 @@ test('contact form: CI variant with mocked relay', async ({ page }) => {
 });
 ```
 
-## 6. `tests/accessibility.spec.js`
+## 7. `tests/accessibility.spec.js`
 
 ```js
 // tests/accessibility.spec.js
@@ -285,7 +345,7 @@ for (const pagePath of pages) {
   test(`accessibility: ${pagePath}`, async ({ page }) => {
     await page.goto(pagePath);
     const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
       // Example documented suppression — only ever suppress with a reason:
       // .exclude('#third-party-embed') // vendor widget outside our control, tracked in TICKET-123
       .analyze();
@@ -296,7 +356,7 @@ for (const pagePath of pages) {
 }
 ```
 
-## 7. `tests/responsive.spec.js`
+## 8. `tests/responsive.spec.js`
 
 ```js
 // tests/responsive.spec.js
@@ -319,7 +379,11 @@ for (const pagePath of pages) {
     });
 
     // Optional, opt-in only — pixel screenshot diffing is high-maintenance
-    // (fonts/rendering vary across machines) and prone to false positives.
+    // (fonts/rendering vary across machines) and prone to false positives
+    // on a normal color site. For a strict-monochrome site (project-discovery's
+    // VCS style question), that false-positive risk mostly disappears — any
+    // stray color is an unambiguous bug, not a font-rendering artifact —
+    // making this a much better cost/benefit trade specifically for that case.
     // test(`visual: ${pagePath} @ ${vp.name}`, async ({ page }) => {
     //   await page.setViewportSize({ width: vp.width, height: vp.height });
     //   await page.goto(pagePath);
@@ -327,9 +391,14 @@ for (const pagePath of pages) {
     // });
   }
 }
+
+// For a multi-language site with an RTL language, run the same overflow
+// check against an RTL page too:
+// const rtlPages = ['/ar/', '/ar/contact/']; // adjust to the actual RTL paths
+// for (const pagePath of rtlPages) { /* same viewport loop as above */ }
 ```
 
-## 8. Optional: `lighthouserc.json`
+## 9. Optional: `lighthouserc.json`
 
 ```json
 {
@@ -354,7 +423,7 @@ Run with `npx lhci autorun` (requires `@lhci/cli` as a devDependency). For
 interpreting Core Web Vitals scores and thresholds, see `website-seo`
 rather than duplicating that guidance here.
 
-## 9. Optional: `.github/workflows/test.yml`
+## 10. Optional: `.github/workflows/test.yml`
 
 Illustrative only — adapt to the project's actual CI provider, or omit
 entirely if the project has no CI yet and "run locally before deploy" is
@@ -367,15 +436,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with: { node-version: 22 }
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npm test
 ```
 
-## 10. Full verification checklist
+Action/Node versions current as of September 2026 — Node 20 reached
+end-of-life April 2026, so pin at least Node 22 (Maintenance LTS through
+April 2027) or Node 24 (Active LTS through April 2028). Re-check current
+majors before reusing this snippet on a new project; CI action versions
+move faster than this doc gets revisited.
+
+## 11. Full verification checklist
 
 - [ ] `npm install` — confirm only devDependencies are added, nothing the
       production site needs at runtime.
@@ -392,16 +467,24 @@ jobs:
 - [ ] The contact form has also been submitted once by hand, in a real
       browser with autofill available, per `contact-form-integration`'s
       gotcha — a passing automated test alone is not sufficient sign-off.
+- [ ] If this is a site relaunch with a redirect map, `redirects.spec.js`
+      passes for every entry in `redirects.json` — run against the live/
+      staging domain, not just the local dev server, since the redirect
+      logic lives in the CloudFront Function/KVS.
 - [ ] If CI is configured, confirm it blocks merges on
       page-health/links/form/accessibility failures but does not block on
       the external-link script or any opt-in visual-diff test.
 
-## 11. Out of scope
+## 12. Out of scope
 
 - SEO tag content, strategy, structured-data types to use, and ongoing SEO
   cadence — see `website-seo`.
 - Building or wiring the contact form to a relay backend — see
   `contact-form-integration`.
+- Which old URLs redirect where and the SEO rationale — see `website-seo`;
+  the CloudFront/KVS mechanism that serves the redirects — see
+  `website-deployment`. This skill only verifies the map behaves as
+  configured.
 - Homepage/copy structure and conversion strategy — see `website-sales-tool`.
 - The production stack, folder layout, and the no-build-step rule this
   test tooling must not violate — see `website-build-standards`.

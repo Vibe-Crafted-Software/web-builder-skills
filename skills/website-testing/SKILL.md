@@ -24,6 +24,10 @@ things. Point here whenever another skill says to "run the test suite."
 - Stack, folder layout, and the zero-build-step rule → `website-build-standards`
   — this skill's own tooling must respect that rule (see Setup below).
 - Legal terms content → `terms-of-use-website` / `terms-of-use-software`.
+- Which old URLs redirect where, and the SEO strategy behind a site
+  relaunch → `website-seo`; the CloudFront/KVS mechanism that actually
+  serves those 301s → `website-deployment`. This skill only verifies the
+  redirect map behaves as configured, once it exists.
 
 ## Setup: dev-only tooling, never deployed
 
@@ -54,6 +58,13 @@ Card is present, and valid JSON-LD is present where expected.
 `website-seo` owns what these tags should *say*; this only verifies they
 exist and are well-formed. Don't re-derive the content guidance here.
 
+For a multi-language site (`project-discovery`'s language checklist),
+also assert every page's `hreflang` tags are present, including an
+`x-default`. The reference spec checks presence only, not full
+reciprocity (every language variant linking back to every other) —
+extend it if the site's language setup is complex enough to warrant
+that deeper check.
+
 ## Broken-link checking
 
 Crawl internal links starting from the homepage (or iterate `sitemap.xml`),
@@ -65,6 +76,19 @@ the local static server. Also check that in-page anchors resolve to a real
 Check external links separately and treat them as advisory, not
 CI-blocking — a third party's rate limiting or a transient outage isn't a
 defect in this site.
+
+## Redirect verification (site relaunch)
+
+When a rebuild relaunches over an existing, already-ranking site,
+`website-seo`'s migration checklist requires crawling the *entire*
+old-URL inventory post-cutover to confirm every redirect actually
+works — spot-checking a handful by hand doesn't scale to a real
+legacy-site redirect map (`website-deployment`'s `redirects.json`,
+potentially hundreds of entries). Add a dedicated spec that reads that
+same `redirects.json` and, for every old path, asserts a single-hop
+301 to the exact expected destination — not just "redirects somewhere."
+This only applies when a redirect map exists; skip it entirely for a
+brand-new site with no prior URLs to protect.
 
 ## Form testing
 
@@ -82,8 +106,10 @@ warns.
 
 ## Accessibility testing
 
-Run `@axe-core/playwright` against every page, targeting WCAG 2.1 AA, and
-assert zero critical/serious violations. This is genuinely new ground for
+Run `@axe-core/playwright` against every page, targeting WCAG 2.1 AA plus
+the WCAG 2.2 AA additions (target size, focus-not-obscured, accessible
+authentication), and assert zero critical/serious violations. This is
+genuinely new ground for
 this repo, so treat it as introductory/smoke-level: it catches missing alt
 text, contrast failures, unlabeled form fields, and landmark issues — it is
 not a substitute for manual keyboard and screen-reader testing, and a clean
@@ -106,6 +132,17 @@ asserting there's no horizontal overflow (compare `scrollWidth` to the
 viewport width). Full pixel screenshot-diffing is available as an optional
 upgrade, but it's high-maintenance and prone to false positives across
 machines/fonts — don't make it the default.
+
+**Exception**: for a strict-monochrome site (`project-discovery`'s VCS
+style question), that false-positive risk mostly disappears — any stray
+color on a grayscale-only design is an unambiguous, high-signal bug, not
+a font-rendering artifact. Screenshot-diffing (or a cheaper computed-style
+color-audit assertion) is a much better cost/benefit trade specifically
+for that case.
+
+For a multi-language site with an RTL language, run the same overflow
+check against an RTL page too — RTL layout bugs are exactly the kind of
+thing this cheap check catches almost for free.
 
 ## Performance
 
@@ -146,6 +183,9 @@ wasn't asked for.
 - The contact form has also been verified once by hand in a real browser,
   per `contact-form-integration`'s gotcha.
 - Any suppressed accessibility rule has a documented reason.
+- If this is a site relaunch with a redirect map, every entry in
+  `redirects.json` is covered by the redirect-verification spec and
+  passes — not just a spot-checked sample.
 - CI, if present, blocks on page-health/internal-link/form/accessibility
   failures but not on flaky external-link or visual-diff checks.
 

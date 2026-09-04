@@ -70,8 +70,9 @@ anything invented.
 
 Attention → agitate the problem → relieve it → prove what's included →
 scope/positioning → risk objections → close. Reuse the site's *existing*
-design-system components (cards, grids, buttons) — don't invent a new
-visual language for this rewrite.
+design-system components (cards, grids, buttons — see
+`website-build-standards`) — don't invent a new visual language for this
+rewrite.
 
 - **Hero**: eyebrow naming the audience/situation, a benefit-driven H1
   (a reader should know the problem solved within five seconds), a lede
@@ -93,7 +94,7 @@ visual language for this rewrite.
 - **Closing trust + CTA**: a short honest note on who's behind the
   product (no fabricated scale claims) and a final clear CTA.
 
-## Conversion-copy conventions (2026 research-backed)
+## Conversion-copy conventions (current best-practice consensus)
 
 - **Five-second clarity rule** — problem/product/audience must be clear
   before the visitor reads any body copy.
@@ -112,6 +113,33 @@ visual language for this rewrite.
   claim is really about a methodology (adapting to local norms) rather
   than current footprint — naming only 2-3 markets can undersell a
   globally-ambitious business.
+
+## Gotchas
+
+- **A stalled or unresponsive business isn't a reason to guess.** If some
+  discovery answers genuinely aren't available yet, don't invent them to
+  finish the page — ship a rewrite covering only the sections with real
+  answers, leave the existing homepage copy in place for the rest, and
+  log what's missing explicitly (the same "don't fabricate, log it"
+  discipline `project-discovery` uses for its own Open Questions) rather
+  than blocking the whole rewrite indefinitely.
+- **Multi-language sites need transcreation, not literal translation.**
+  If `PROJECT_BRIEF.md` (`project-discovery`) specifies more than one
+  language, this playbook's persuasive mechanisms — the "you're probably
+  doing X" hook, objection framing, idiom — rarely survive a word-for-
+  word translation. Confirm who actually owns adapting this copy per
+  language (a professional transcreation pass, or the client per locale)
+  before treating "drafted once, translated" as done, and check whether
+  the discovery answers themselves (objections, market framing) should
+  actually differ by market rather than assuming one script fits every
+  locale.
+- **A strict monochrome site can't lean on color for CTA hierarchy.** If
+  `PROJECT_BRIEF.md` recorded a monochrome style choice (`project-
+  discovery`), the usual primary-vs-secondary-button distinction (a
+  filled, colored button vs. an outline/text link) has no color to work
+  with. Achieve the same hierarchy through weight, fill vs. outline,
+  size, or position instead, and confirm with whoever implements the
+  design that it still reads clearly without color.
 
 ## Handling existing homepage content: relocate, don't delete
 
@@ -141,6 +169,12 @@ thrown away even when the new homepage is better.
 - If the site alternates section background colors for visual rhythm,
   confirm inserting/removing sections didn't leave two matching sections
   back to back.
+- This checklist verifies the rewrite is *correct*, not that it
+  *converts* better — before calling the project fully done, instrument
+  the primary (and secondary, if present) CTA with a distinct analytics
+  event (see `website-seo`'s analytics setup) so its actual performance
+  is measurable, and plan a follow-up look at the numbers a few weeks
+  post-launch rather than treating the rewrite as one-and-done.
 
 ## Additional resources
 
