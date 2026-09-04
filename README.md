@@ -1,11 +1,11 @@
 # web-builder-skills
 
-Internal Claude Code plugin bundling seven reusable "web builder"
+Internal Claude Code plugin bundling eight reusable "web builder"
 playbooks as Skills — vanilla HTML/CSS/JS build standards, SEO, homepage
-sales copy, contact-form integration, automated testing, and South
-Africa-first Terms of Use templates (website + software). Originally
-drafted in the `VCS_Website` project; this repo is the maintained,
-cross-project source going forward.
+sales copy, contact-form integration, automated testing, AWS
+hosting/deployment, and South Africa-first Terms of Use templates
+(website + software). Originally drafted in the `VCS_Website` project;
+this repo is the maintained, cross-project source going forward.
 
 **This is a private, internal tool.** It is never published to
 Anthropic's public plugin marketplace and is not intended for anyone
@@ -13,7 +13,7 @@ outside this project's own use.
 
 ## What's in it
 
-Seven skills, one plugin (`skills/<name>/SKILL.md` + a
+Eight skills, one plugin (`skills/<name>/SKILL.md` + a
 `references/<name>.md` with the full playbook):
 
 - **`website-build-standards`** — the foundational stack/folder-structure
@@ -27,6 +27,9 @@ Seven skills, one plugin (`skills/<name>/SKILL.md` + a
 - **`website-testing`** — automated Playwright/axe-core testing (page
   health, broken links, contact-form, accessibility, responsive smoke
   checks) as dev-only tooling that never ships to the static host.
+- **`website-deployment`** — hosting each client site on AWS (S3 +
+  CloudFront + Route 53 + ACM), the least-privilege IAM role to do it,
+  the routine deploy, and moving a domain's DNS to Route 53.
 - **`terms-of-use-website`** — a South Africa-first Website Terms of Use
   template.
 - **`terms-of-use-software`** — a South Africa-first Software Terms of
@@ -67,6 +70,7 @@ skills/
   website-sales-tool/
   contact-form-integration/
   website-testing/
+  website-deployment/
   terms-of-use-website/
   terms-of-use-software/
 ```
