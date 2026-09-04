@@ -1,6 +1,6 @@
 {
   "name": "web-builder-skills",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Internal playbooks for client/project discovery and competitor research, building and launching client websites and apps: vanilla HTML/CSS/JS build standards, SEO, homepage sales copy, contact-form integration, automated testing, AWS hosting/deployment, and South Africa-first Terms of Use templates.",
   "author": { "name": "Heinrich" }
 }
