@@ -55,13 +55,42 @@ example for the `project-discovery` skill.
 - Any page outside the main nav (privacy policy, thank-you page,
   careers, a campaign landing page)?
 - Any feature beyond static content: a contact form (→
-  `contact-form-integration`), a calculator/tool, a gated download,
-  multi-language support?
-- Is i18n needed at launch or later?
+  `contact-form-integration`), a calculator/tool, a gated download?
 - Any e-commerce/checkout requirement? Flag this explicitly and early —
   the current stack (`website-build-standards`) is brochure-only, so
   this changes the technical approach rather than being discovered
   mid-build.
+
+**Language & translation** — don't accept a one-word "yes" to "is this
+multi-language?"; get a real answer to each of these:
+
+- Which languages, specifically — a primary/default language plus every
+  additional one? (Not just "yes, multi-language.")
+- Is this needed at launch, or a defined phase-two addition? If phased,
+  which languages ship first?
+- Full parallel content per language (every page translated, its own
+  URL) or a lighter form — a single-page language toggle, or only key
+  pages (e.g. home, contact) translated while the rest stays in the
+  default language?
+- Who provides the translations: the client supplies text per language,
+  a professional translation service is commissioned, or machine
+  translation is acceptable? Each has very different timeline/quality/
+  budget implications — get this answered before quoting a timeline.
+- Is the default language chosen by the visitor's browser/locale, or
+  always a fixed default with a manual switcher? (Auto-detection adds
+  real complexity for a static, build-step-free site — confirm it's
+  actually wanted before assuming it.)
+- Does any target language read right-to-left (Arabic, Hebrew, etc.)?
+  This has real layout/CSS implications, not just translated text — flag
+  it early, don't discover it after the design is built.
+- Do legal pages (Terms of Use, Privacy Policy) need translation too, or
+  is a single language acceptable there even if the rest of the site is
+  multi-language? Confirm explicitly — don't assume either way.
+- Note for later, not to resolve here: full parallel-language content
+  means a `/en/`, `/fr/`-style URL structure that `website-build-standards`
+  builds the folder tree around, and `hreflang` tags that `website-seo`
+  needs to add — this checklist only needs to establish *whether* and
+  *how* translation is happening, not solve those downstream details now.
 
 ### F. Existing content/copy status
 
@@ -205,8 +234,14 @@ Prepared: {{DATE}}
 - {{NAV_ITEM_2}}
 - Pages outside main nav: {{OTHER_PAGES}}
 - Features beyond static content: {{FEATURES}}
-- i18n: {{I18N_STATUS}}
 - E-commerce/checkout: {{ECOMMERCE_STATUS}}
+- Languages needed: {{LANGUAGES}} (default: {{DEFAULT_LANGUAGE}})
+- Language rollout: {{I18N_TIMING}} (launch / phased — specify phase)
+- Translation depth: {{I18N_DEPTH}} (full parallel pages / toggle / key pages only)
+- Translation source: {{I18N_SOURCE}} (client-supplied / professional service / machine translation)
+- Language selection: {{I18N_SELECTION}} (auto-detected / fixed default + manual switcher)
+- RTL language required: {{I18N_RTL}}
+- Legal pages translated too: {{I18N_LEGAL}}
 
 ## F. Existing content/copy status
 - {{CONTENT_STATUS}}
@@ -308,6 +343,10 @@ Prepared: 2026-09-04
 - [ ] Section G has a definite yes/no on whether a domain already
   exists, and — if yes — its current registrar/DNS host is confirmed,
   not assumed.
+- [ ] If the site needs more than one language, every language/
+  translation sub-question is answered (languages, timing, depth,
+  translation source, selection method, RTL, legal-page coverage) — not
+  just a one-word "yes" to multi-language.
 - [ ] Research notes contain only factual observations — no draft copy,
   no persuasive language, no recommendations for the client's own
   homepage content.

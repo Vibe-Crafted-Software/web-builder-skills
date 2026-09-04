@@ -52,9 +52,12 @@ brief:
 - **E. Pages & features needed** — the actual nav list (this becomes
   `website-build-standards`'s folder tree directly), any page outside
   the main nav, any feature beyond static content (a contact form →
-  `contact-form-integration`; a calculator; a gated download;
-  multi-language; e-commerce — flag explicitly, since the current stack
-  is brochure-only).
+  `contact-form-integration`; a calculator; a gated download; e-commerce
+  — flag explicitly, since the current stack is brochure-only). If more
+  than one language is needed, the full language/translation
+  sub-checklist (which languages, who provides translation, per-language
+  URL structure, RTL, legal-page coverage) is in the reference file — get
+  a real answer to each rather than a one-word "yes."
 - **F. Existing content/copy status** — what already exists vs. needs
   drafting, anything ranking that needs a preserved redirect on rebuild,
   anything that must migrate verbatim.
