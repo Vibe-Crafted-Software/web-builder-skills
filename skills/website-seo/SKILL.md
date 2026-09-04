@@ -29,7 +29,10 @@ maintenance for a site already live.
    set (title/description/type/url/image) and Twitter Card tags on every
    page — not just the homepage.
 4. JSON-LD structured data (not Microdata): Organization + WebSite on the
-   homepage, BreadcrumbList site-wide, Article/BlogPosting per post.
+   homepage, BreadcrumbList site-wide, Article/BlogPosting per post. The
+   nav hierarchy `website-build-standards` defines (e.g. Services > Web
+   Design/Hosting) is the same structure a BreadcrumbList encodes, and
+   the nav/footer link set should match `sitemap.xml`'s page set.
 5. Google Search Console: verify via DNS TXT record (most durable),
    submit the sitemap.
 6. Bing Webmaster Tools: import from an already-verified GSC property, or

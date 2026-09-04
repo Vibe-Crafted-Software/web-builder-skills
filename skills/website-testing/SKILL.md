@@ -89,6 +89,12 @@ text, contrast failures, unlabeled form fields, and landmark issues — it is
 not a substitute for manual keyboard and screen-reader testing, and a clean
 run does not mean the site is fully accessible.
 
+`website-build-standards`'s header/nav/footer patterns give this suite
+concrete, non-generic assertions beyond a blanket axe scan: the skip
+link's target `id` exists and receives focus, the mobile toggle's
+`aria-expanded` value flips on click, and exactly one nav link per page
+carries `aria-current="page"`.
+
 When adding this to an existing, previously-untested site, treat the first
 run as an audit — triage the findings before treating any of them as hard
 blockers.

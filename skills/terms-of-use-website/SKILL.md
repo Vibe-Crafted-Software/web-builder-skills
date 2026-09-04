@@ -114,7 +114,11 @@ certificate, not a conversation.
 - A Privacy Policy exists, or its absence is explicitly flagged, before
   the forms/submissions clause links to one.
 - The page is reachable from the site footer and included in the site's
-  sitemap/page inventory.
+  sitemap/page inventory. `website-build-standards`'s footer boilerplate
+  includes a Terms of Use link slot by default — point it at this page
+  rather than adding a duplicate link elsewhere, and don't restate the
+  "Company information" block itself in the footer; it belongs on this
+  page only.
 - Read by someone other than the drafter, ideally an admitted attorney,
   before treating it as load-bearing.
 

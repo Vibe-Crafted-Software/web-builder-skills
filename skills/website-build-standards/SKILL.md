@@ -145,6 +145,59 @@ that out to the user explicitly rather than splitting proactively.
 **JS**: split by concern (`main.js` global + optional page-specific
 files). Never let JS depend on `main.css`'s internal structure.
 
+**Header, navigation, and footer**: the boilerplate's header/nav/footer
+aren't placeholder markup — build every page's copy from this exact
+pattern.
+
+- **Skip link** — the first focusable element in `<body>`, pointing to
+  `#main-content` on `<main>`. Visually hidden by default (off-screen
+  positioning, never `display:none`/`visibility:hidden`), revealed on
+  `:focus`. Still current WCAG 2.4.1 (Bypass Blocks) guidance, not
+  superseded by anything newer.
+- **Mobile menu toggle** — a real `<button>` carrying `aria-expanded`
+  (flipped `true`/`false` on open/close) and `aria-controls` pointing at
+  the nav's `id`. Never a `<div>` with a click handler, and never the
+  checkbox-hack (`<input type="checkbox">` + `<label>`) — the label isn't
+  a real interactive control and loses proper focus/announcement
+  semantics that a `<button>` gets for free. The icon may swap
+  hamburger→X; the accessible name stays constant across states.
+- **Multi-level nav** (e.g. this skill's own Services > Web Design,
+  Hosting example) — use the WAI-ARIA APG's *Disclosure* pattern, not the
+  full Menu/Menubar pattern (that's for app-like widgets, not site nav).
+  A dedicated toggle button (`aria-expanded`/`aria-controls`) sits beside
+  the parent link, so the parent keeps navigating to its own landing page
+  while the button reveals the submenu list. Submenus must **not**
+  auto-open when a keyboard user Tabs to the parent link — only on
+  click/Enter on the toggle. `Escape` closes an open submenu and returns
+  focus to its toggle button. On desktop, hover-reveal is acceptable *in
+  addition to* the click toggle (pair `:hover` with `:focus-within`,
+  never hover-only). On mobile, the same disclosure becomes an in-place
+  accordion inside the open mobile panel — never a hover flyout, since
+  touch has no hover state.
+- **Active-page indication** — `aria-current="page"` on the nav link
+  matching the current page. Since this stack has no includes/templating,
+  each page's own hardcoded nav copy carries its own `aria-current` on its
+  own link — nothing else changes between pages' nav markup.
+- **Sticky header — opt-in, not the default.** A sticky header has real
+  costs on a small site: it eats mobile viewport space, can visually bury
+  a keyboard user's focus outline while they Tab down the page, and
+  buries in-page anchor targets. Default to a static header. If sticky
+  behavior is specifically wanted, apply it as an explicit modifier and
+  pair it with `scroll-padding-top` (or per-target `scroll-margin-top`)
+  set to the header's height, so anchor links and the skip-link target
+  still land below the fixed bar.
+- **Logo** — links to `/`. Alt text is `"[Site Name] logo"` when the
+  image is the link's only content; empty `alt=""` when it sits beside
+  visible company-name text in the same link, so a screen reader doesn't
+  announce the name twice.
+- **Footer content** — a sitemap-style link recap, contact info, legal
+  links (Terms of Use, Privacy Policy), and a copyright line with the
+  year, in a responsive multi-column layout that stacks to one column on
+  mobile. This skill only guarantees the *slots* exist (a Terms of Use
+  link, a contact email); the legal wording itself is
+  `terms-of-use-website`'s job — don't duplicate its "Company
+  information" block into the footer, just link to the page that has it.
+
 ## Verification checklist
 
 Before calling a build or migration done:
@@ -158,6 +211,14 @@ Before calling a build or migration done:
   step required
 - No leftover CMS admin links, generator meta tags, or plugin references
   in `<head>`
+- Every page's nav copy carries `aria-current="page"` on exactly the one
+  link matching that page
+- The mobile menu toggle is a real `<button>` with `aria-expanded` that
+  flips on open/close — not a checkbox hack or a `<div>` click handler
+- The skip link is the first focusable element and is visually
+  hidden-until-focus, never `display:none`
+- If a sticky header is used, `scroll-padding-top`/`scroll-margin-top` is
+  set to its height
 
 ## Additional resources
 
