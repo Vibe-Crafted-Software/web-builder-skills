@@ -142,6 +142,48 @@ instead.
 `main.css` demonstrably becomes unwieldy for a human to navigate, and call
 that out to the user explicitly rather than splitting proactively.
 
+**Typography — default to sans-serif, not serif.** AI-assisted builds
+tend to reach for an "elegant" serif by default; don't. Unless the
+client's existing brand/style guide says otherwise (check
+`PROJECT_BRIEF.md`'s Fonts field from `project-discovery` first):
+
+- Default font is **Roboto**, self-hosted as WOFF2 — never a bare
+  `<link>` to Google Fonts, and never a bare font name with no fallback
+  stack on the `--font-body` token.
+- Serif is a deliberate brand decision (editorial, legal, heritage,
+  luxury positioning), not a default — only use one when the brief
+  calls for it, and say so explicitly.
+- One font family, two weights (400 + 600/700) is enough for a typical
+  client site — build hierarchy with size/weight/color, not extra
+  families or cuts.
+
+Full loading pattern (self-hosting, `@font-face`, fallback stack) →
+`references/website-build-standards.md`.
+
+**Monochrome style — opt-in, locked spec.** Applies only when
+`project-discovery`'s Brand-assets question (category D) recorded a
+strict-monochrome choice. Otherwise this doesn't apply — use the
+generic example tokens in the `main.css` skeleton below.
+
+- When it applies, this is a **locked spec, not a starting point**: the
+  exact grayscale scale, semantic tokens, and dark/light mechanism in
+  `references/website-build-standards.md` replace the skeleton's
+  example color tokens verbatim — don't invent new grays or an accent
+  color.
+- Light/dark mode is **automatic by default**
+  (`prefers-color-scheme`, no visible toggle needed). A manual toggle
+  button is an optional, documented add-on for when a client
+  specifically wants one, not the default expectation.
+- Only one non-gray color is permitted: a red destructive/error state
+  for form validation and similar. No accent/brand color is introduced
+  by this spec.
+- Font choice is unaffected — still Roboto per the Typography rule
+  above; monochrome governs color/theming only.
+
+Full token values, dark-mode override block, the no-flash toggle
+script, section-alternation pattern, and the `.btn`/`.btn-primary`/
+`.btn-outline` component → `references/website-build-standards.md`.
+
 **JS**: split by concern (`main.js` global + optional page-specific
 files). Never let JS depend on `main.css`'s internal structure.
 
@@ -225,5 +267,8 @@ Before calling a build or migration done:
 - **`references/website-build-standards.md`** — the complete playbook:
   full WordPress-signature removal table with exact grep patterns, a
   worked multi-level nav → folder-tree example, a copy-pasteable semantic
-  HTML boilerplate, and a full `main.css` skeleton with real example
-  rules for each of the five sections above.
+  HTML boilerplate, a full `main.css` skeleton with real example rules
+  for each of the five sections above, a typography section covering
+  self-hosting Roboto (or a brand font) with `@font-face` and
+  `font-display: swap`, and the locked monochrome light/dark token
+  system with its no-flash theme script and button component.

@@ -263,7 +263,7 @@ design tokens and a light BEM convention for components:
   --color-bg: #ffffff;
   --color-border: #dddddd;
   --color-bg-alt: #f5f5f5;
-  --font-body: system-ui, sans-serif;
+  --font-body: "Roboto", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --space-sm: 0.5rem;
   --space-md: 1rem;
   --space-lg: 2rem;
@@ -485,7 +485,283 @@ scan it comfortably, add a second file (`/assets/css/pricing.css`) linked
 only on that page — and say so explicitly, since the default for this
 skill is one stylesheet.
 
-## 5. Full verification checklist
+## 5. Typography: choosing and loading fonts
+
+**Default rule**: Roboto, sans-serif, self-hosted. Sans-serif renders
+more reliably at small UI sizes and low DPI, reads as neutral/modern,
+and Roboto specifically is Android's system font — one of the most
+battle-tested sans-serifs on the web. Serif is a legitimate choice for
+editorial, legal, heritage, or luxury-positioned brands, but it's a
+*deliberate* call, never the silent default — don't let a build drift
+into "elegant serif" just because it looks more designed.
+
+**When to deviate**: the client's brief/style guide already specifies a
+brand font — use it (checking license/webfont availability first) — or
+the brief specifically wants a serif/editorial feel. Either way, call
+the deviation out explicitly rather than silently swapping the default.
+
+**Self-hosting Roboto (or any chosen font)**: download the WOFF2 weights
+actually needed (typically 400 and 600/700) from Google Fonts' "Download
+family" or a self-hosting generator, place them under `/assets/fonts/`,
+and declare them in the Tokens section of `main.css`, before `:root`:
+
+```css
+@font-face {
+  font-family: "Roboto";
+  src: url("/assets/fonts/roboto-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Roboto";
+  src: url("/assets/fonts/roboto-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+```
+
+Self-hosting beats a Google Fonts CDN `<link>` here: cross-site font
+caching was removed from every major browser years ago, so the CDN has
+no shared-cache advantage left, self-hosted WOFF2 on the same origin
+(any static host here runs HTTP/2) matches or beats it with no extra
+DNS/TLS round trip, and it avoids sending every visitor's IP to Google
+at page load without consent — the same issue behind GDPR fines in the
+EU, worth avoiding given this plugin's South-Africa-first legal skills
+(`terms-of-use-website`, POPIA). Self-hosting is also just static files,
+so it fits the stack rule with zero build tooling.
+
+`--font-body` always carries a full fallback stack, never a bare font
+name:
+
+```css
+--font-body: "Roboto", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+```
+
+`system-ui, sans-serif` alone (no web font at all) remains an acceptable
+zero-webfont option for a very simple/low-budget build — call that
+choice out explicitly if taken, same as any other deviation from the
+default.
+
+**Loading performance**: `font-display: swap` on every `@font-face`
+(shown above) so text is visible in a fallback font immediately, never
+invisible while the web font loads. No `<link>` to
+`fonts.googleapis.com`/`fonts.gstatic.com` at all when self-hosting —
+there's nothing to preconnect to. If a client-supplied brand font can
+only be loaded from a third-party CDN, add
+`<link rel="preconnect" href="...">` for that origin in `<head>`.
+
+**Weight/file discipline**: two weights (400 regular + 600/700 bold)
+covers a typical marketing site — build hierarchy with size and weight,
+not extra font files. Don't pull in italic/light/black cuts unless the
+design genuinely uses them; each extra weight is another render-blocking
+file.
+
+**Accessibility**: keep body text at a `1rem` (≈16px) base with
+line-height around 1.5 for body copy, and don't rely on font-weight
+alone to convey meaning that also needs color/underline to register for
+users who can't perceive weight differences.
+
+## 6. Monochrome style: locked light/dark token system
+
+**When this applies**: only on a confirmed strict-monochrome choice from
+`project-discovery` (category D). This section **replaces**, not
+supplements, the example `--color-*` tokens in the `main.css` skeleton's
+Tokens section above — don't blend the two.
+
+**The locked token set** (`:root`, light values):
+
+```css
+:root {
+  --gray-950: #050505;
+  --gray-900: #0c0c0c;
+  --gray-800: #262626;
+  --gray-700: #404040;
+  --gray-600: #525252;
+  --gray-500: #6b6b6b;
+  --gray-400: #a3a3a3;
+  --gray-300: #d4d4d4;
+  --gray-200: #e5e5e5;
+  --gray-100: #f0f0f0;
+  --gray-50:  #f7f7f7;
+
+  --background: #ffffff;
+  --background-alt: var(--gray-50);
+  --foreground: var(--gray-900);
+  --muted: var(--gray-50);
+  --muted-foreground: var(--gray-500);
+  --border: var(--gray-200);
+  --border-strong: var(--gray-300);
+  --primary: var(--gray-900);
+  --primary-dark: var(--gray-950);
+  --primary-foreground: #ffffff;
+
+  --destructive: #b91c1c;
+  --destructive-bg: rgba(220, 38, 38, 0.1);
+  --destructive-foreground: #ffffff;
+}
+```
+
+**Dark-mode override**, keyed off a `data-theme="dark"` attribute on
+`<html>` (an attribute, not a `.dark` class, to avoid colliding with
+this skill's own BEM component-class convention):
+
+```css
+:root[data-theme="dark"] {
+  --dark-elevated: #1c1c1c;
+  --background: var(--gray-950);
+  --background-alt: var(--dark-elevated);
+  --foreground: var(--gray-50);
+  --muted: var(--dark-elevated);
+  --muted-foreground: var(--gray-400);
+  --border: var(--gray-800);
+  --border-strong: var(--gray-700);
+  --primary: var(--gray-50);
+  --primary-dark: #ffffff;
+  --primary-foreground: var(--gray-950);
+
+  --destructive: #f87171;
+  --destructive-bg: rgba(248, 113, 113, 0.14);
+  --destructive-foreground: var(--gray-950);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* same custom properties as the [data-theme="dark"] block above */
+    --dark-elevated: #1c1c1c;
+    --background: var(--gray-950);
+    --background-alt: var(--dark-elevated);
+    --foreground: var(--gray-50);
+    --muted: var(--dark-elevated);
+    --muted-foreground: var(--gray-400);
+    --border: var(--gray-800);
+    --border-strong: var(--gray-700);
+    --primary: var(--gray-50);
+    --primary-dark: #ffffff;
+    --primary-foreground: var(--gray-950);
+    --destructive: #f87171;
+    --destructive-bg: rgba(248, 113, 113, 0.14);
+    --destructive-foreground: var(--gray-950);
+  }
+}
+```
+
+The pattern: automatic dark mode comes from the `prefers-color-scheme`
+media query; an explicit `data-theme="light"` or `data-theme="dark"`
+attribute (set by the optional toggle below) always wins over the media
+query in both directions, since `:not([data-theme="light"])` only
+suppresses the media block when light mode was explicitly forced, and
+the plain `[data-theme="dark"]` rule already beats the media query on
+specificity when dark was explicitly forced.
+
+**No-flash theme script**: a small inline `<script>` in `<head>`,
+*before* `main.css` loads, so there's no flash of the wrong theme on
+load — vanilla JS, no framework required:
+
+```html
+<script>
+  (function () {
+    var stored = localStorage.getItem('theme');
+    if (stored) document.documentElement.setAttribute('data-theme', stored);
+  })();
+</script>
+```
+
+Note it only sets the attribute when a preference was explicitly
+**stored** — with no stored preference, the CSS media query alone
+handles theming and the attribute stays unset, matching the "media
+query is the default, attribute is the override" rule above.
+
+**Optional manual toggle** (documented, not mandatory — default builds
+skip this; only add it when a client specifically asks for manual
+control): a header button that flips the stored preference and applies
+it immediately.
+
+```js
+var toggle = document.querySelector('.theme-toggle');
+if (toggle) {
+  toggle.addEventListener('click', function () {
+    var current = document.documentElement.getAttribute('data-theme')
+      || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+  });
+}
+```
+
+**Section alternation**: `.section` / `.section-alt` swap
+`--background-alt` in for visual rhythm down the page:
+
+```css
+.section { padding: var(--space-lg) 0; }
+.section-alt { background: var(--background-alt); }
+```
+
+In dark mode, the "alt" surface should step *up* the gray scale (e.g.
+`--gray-800` rather than the default `--dark-elevated`) instead of just
+swapping light/dark the way the base background does — that's the
+detail that keeps dark mode from reading as a flat inversion:
+
+```css
+:root[data-theme="dark"] .section-alt {
+  --background-alt: var(--gray-800);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .section-alt {
+    --background-alt: var(--gray-800);
+  }
+}
+```
+
+**Button component** (new — the skeleton's Components section has no
+button today): built entirely from the grayscale tokens above, no
+accent color on any CTA.
+
+```css
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-outline {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--foreground);
+}
+.btn-outline:hover { border-color: var(--primary); }
+```
+
+**What's deliberately excluded**: the reference implementation this
+spec is drawn from also defines two accent tokens (an indigo and a
+teal) but never applies them anywhere on its public pages — confirmed
+by inspecting its compiled CSS. They're left out of this standard on
+purpose: the locked palette stays strictly grayscale plus the one
+destructive-red exception. Don't add an accent color under this spec
+unless the client explicitly asks for a deviation — and if they do,
+call it out explicitly as a deviation rather than quietly reintroducing
+color.
+
+**Accessibility note**: verify `--muted-foreground` on `--background`
+and on `--background-alt` clears WCAG AA contrast in *both* themes
+before shipping — a gray step that passes in light mode can fail in
+dark mode even though the palette looks symmetric on paper.
+
+## 7. Full verification checklist
 
 Run all of these before calling a build or WordPress migration done:
 
@@ -525,3 +801,26 @@ Then, for the header/nav/footer:
   (there's no hover on touch).
 - Confirm exactly one nav link per page carries `aria-current="page"`,
   and it matches that page.
+
+Then, for typography:
+
+- Font files are self-hosted WOFF2 under `/assets/fonts/` — the Network
+  tab shows no request to `fonts.googleapis.com`/`fonts.gstatic.com`,
+  unless a documented brand-font exception applies.
+- Every `@font-face` rule sets `font-display: swap`.
+- `--font-body` carries a full fallback stack, never a bare font name.
+- No more than two font weights are loaded unless the brief specifically
+  calls for more.
+- If a serif or other non-default font was used, it's because the brief
+  called for it — not a silent default.
+
+If monochrome was chosen, also check:
+
+- Tokens match the locked scale/semantic set exactly — no ad hoc hex
+  values, no accent color beyond the destructive red.
+- Reloading with a previously-saved theme preference shows no
+  flash-of-wrong-theme (the inline script runs before first paint).
+- Both `[data-theme="dark"]` and the `prefers-color-scheme: dark` media
+  fallback produce the same result when no explicit choice is stored.
+- `--muted-foreground` passes AA contrast against `--background` and
+  `--background-alt` in both themes.

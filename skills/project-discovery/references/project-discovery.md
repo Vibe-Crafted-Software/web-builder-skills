@@ -61,7 +61,11 @@ first:**
   explicit choice either way — don't assume one.
 - If monochrome: that's the style decision. Continue with the normal
   logo/font/imagery questions below, just skip the color-palette
-  question.
+  question. Monochrome now means the **locked** grayscale + automatic
+  light/dark token system in `website-build-standards` — no separate
+  light/dark-preference question needed here, that stays specific to
+  the non-monochrome path below. A visible manual light/dark toggle can
+  be requested, but it's not asked by default.
 - If not monochrome, ask the follow-up color/theme questions: an
   existing palette, or does one need to be chosen? An accent color? A
   light/dark theme preference?
@@ -73,7 +77,10 @@ For a non-VCS project, ask the general brand questions:
 
 - Actual logo files (vector if available — not a description of one).
 - Existing color palette/style guide, if any.
-- Fonts already in use, or license availability for new ones.
+- Fonts already in use, or license availability for new ones. No
+  preference is a valid answer — the build defaults to self-hosted
+  Roboto per `website-build-standards`, so record it as "none — use
+  default."
 - Photography/imagery already owned/licensed, vs. needing stock or
   AI-generated images.
 - Existing marketing collateral (deck, brochure) worth mining for copy
