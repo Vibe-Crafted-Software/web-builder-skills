@@ -1,10 +1,11 @@
 # web-builder-skills
 
-Internal Claude Code plugin bundling nine reusable "web builder"
+Internal Claude Code plugin bundling ten reusable "web builder"
 playbooks as Skills — client/project discovery and competitor research,
 vanilla HTML/CSS/JS build standards, SEO, homepage sales copy,
-contact-form integration, automated testing, AWS hosting/deployment, and
-South Africa-first Terms of Use templates (website + software).
+contact-form integration, on-site search, automated testing, AWS
+hosting/deployment, and South Africa-first Terms of Use templates
+(website + software).
 Originally drafted in the `VCS_Website` project; this repo is the
 maintained, cross-project source going forward.
 
@@ -14,7 +15,7 @@ outside this project's own use.
 
 ## What's in it
 
-Nine skills, one plugin (`skills/<name>/SKILL.md` + a
+Ten skills, one plugin (`skills/<name>/SKILL.md` + a
 `references/<name>.md` with the full playbook):
 
 - **`project-discovery`** — client intake checklist plus live
@@ -24,6 +25,11 @@ Nine skills, one plugin (`skills/<name>/SKILL.md` + a
   standard (vanilla HTML/CSS/JS, folder-per-page mirroring the nav, one
   central stylesheet) and the checklist for stripping WordPress/CMS
   fingerprints out of a migrated site.
+- **`website-search`** — opt-in on-site full-text search (Pagefind) with
+  category filtering and sorting, for content-heavy sites (docs,
+  knowledge bases, large blog archives) where a nav alone isn't enough —
+  the one documented exception to `website-build-standards`' no-build-step
+  rule.
 - **`website-seo`** — technical/content SEO setup and ongoing cadence,
   plus a full migration checklist for redesigning/replatforming an
   existing, already-ranking site without losing its rankings.
@@ -74,6 +80,7 @@ no per-project setup needed after the first install.
 skills/
   project-discovery/
   website-build-standards/
+  website-search/
   website-seo/
   website-sales-tool/
   contact-form-integration/
