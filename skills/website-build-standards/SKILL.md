@@ -240,6 +240,42 @@ pattern.
   `terms-of-use-website`'s job — don't duplicate its "Company
   information" block into the footer, just link to the page that has it.
 
+## Style guide page (`/stylesheet/`) — mandatory
+
+Every site gets a `/stylesheet/` page — not optional, regardless of
+whether monochrome was chosen. It renders whatever `main.css` actually
+defines (the Tokens section's color values, the Typography rules, every
+named Components-section class — `.btn`/`.btn-primary`/`.btn-outline`,
+`.card`/`.card__title`/`.card--featured`, etc.) live, each example
+labeled with its class name — a living reference so anyone touching the
+CSS later (human or Claude) can see what a class actually looks like
+without reading the stylesheet.
+
+- **Deliberately unreachable, not indexed**: `<meta name="robots"
+  content="noindex, nofollow">`, no link from the nav, footer, home page,
+  or sitemap. It's a dev/maintenance reference, not site content.
+- **Renders real classes, never reimplements them** — every example is
+  the actual `main.css` class applied to real markup, not a mockup. A
+  page-local `<style>` block is allowed only for presentational
+  scaffolding around each demo (a dashed border, a small muted caption
+  naming the class) — never merged into `main.css` itself, and never
+  anything that could be confused with a class real content would use.
+- **Both themes, if the site has a light/dark toggle**: when the
+  monochrome/dark-mode system above applies, every example must be
+  checkable in both themes — reuse the site's own toggle in the header.
+- **What it covers** — only the parts that actually apply to this site's
+  `main.css`, don't invent classes it doesn't have: Typography (h1–h4,
+  body text, bold/italic, links, inline code); a color-token swatch table
+  (every token in Tokens, light and dark values if applicable); Buttons;
+  Cards; any other named Components-section class; standard content
+  elements the Reset/Base section governs (lists, tables,
+  blockquotes/`<hr>`) if the site's content uses them.
+- **Keep it in sync**: update this page in the same change whenever a
+  token, component, or typography rule changes in `main.css` —
+  documentation like this goes stale silently otherwise.
+
+Full copy-pasteable template → `references/website-build-standards.md`.
+
 ## Verification checklist
 
 Before calling a build or migration done:
@@ -261,6 +297,13 @@ Before calling a build or migration done:
   hidden-until-focus, never `display:none`
 - If a sticky header is used, `scroll-padding-top`/`scroll-margin-top` is
   set to its height
+- `/stylesheet/` exists, is reachable by typing the URL directly, carries
+  `noindex, nofollow`, and has no incoming link from nav, footer, or home
+  page
+- Every token in `main.css`'s Tokens section has a swatch on
+  `/stylesheet/`; every named Components-section class has a live,
+  labeled demo; if the site has a light/dark toggle, every example reads
+  correctly in both themes
 
 ## Additional resources
 
@@ -270,5 +313,6 @@ Before calling a build or migration done:
   HTML boilerplate, a full `main.css` skeleton with real example rules
   for each of the five sections above, a typography section covering
   self-hosting Roboto (or a brand font) with `@font-face` and
-  `font-display: swap`, and the locked monochrome light/dark token
-  system with its no-flash theme script and button component.
+  `font-display: swap`, the locked monochrome light/dark token system
+  with its no-flash theme script and button component, and a
+  copy-pasteable `/stylesheet/` style-guide page template.

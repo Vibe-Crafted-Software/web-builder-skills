@@ -761,7 +761,153 @@ and on `--background-alt` clears WCAG AA contrast in *both* themes
 before shipping — a gray step that passes in light mode can fail in
 dark mode even though the palette looks symmetric on paper.
 
-## 7. Full verification checklist
+## 7. Style guide page (`/stylesheet/`)
+
+Every site gets a `/stylesheet/` page — mandatory, not opt-in, regardless
+of whether monochrome (§6) was chosen. It's a plain static page, built
+from the same `main.css` as the rest of the site, that renders every
+token and named component class live and labeled — a maintenance
+reference, not site content. Deliberately unreachable: `noindex,
+nofollow`, no link from nav/footer/home page/sitemap. If the site also
+uses the `website-search` skill, exclude this page from the search index
+the same way (omit `data-pagefind-body` on it).
+
+A page-local `<style>` block supplies only the demo scaffolding (a dashed
+border box, a small muted caption naming each class) — never anything
+that could be mistaken for a class real content would use, and never
+merged into `main.css` itself.
+
+Below is the generic version, built from this skill's own §3 boilerplate
+and §4 `main.css` skeleton (swap the color-token table for the full
+locked grayscale set from §6 if monochrome applies, and add a demo block
+per any additional custom component the site defines, following the same
+pattern):
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stylesheet — {{SITE_NAME}}</title>
+  <meta name="robots" content="noindex, nofollow">
+  <!-- omit this script entirely if the site isn't using the monochrome/
+       dark-mode system from §6 -->
+  <script>
+    (function () {
+      var stored = localStorage.getItem('theme');
+      if (stored) document.documentElement.setAttribute('data-theme', stored);
+    })();
+  </script>
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <style>
+    /* Page-local only - presentational scaffolding for this internal
+       reference page. Never added to main.css: nothing here is meant
+       to be reused by real content. Every demoed component still
+       renders via its real main.css class, unmodified. */
+    .demo-block {
+      border: 1px dashed var(--color-border);
+      border-radius: 6px;
+      padding: var(--space-md);
+      margin-bottom: var(--space-sm);
+    }
+    .demo-label {
+      margin: 0 0 var(--space-lg);
+      font-size: 0.8125rem;
+      color: var(--color-text);
+      opacity: 0.65;
+    }
+    .swatch-table td { vertical-align: middle; }
+    .swatch {
+      display: inline-block;
+      min-width: 9rem;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.8125rem;
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <!-- site header, identical to every other page -->
+
+  <main id="main-content" class="container" style="padding-block: var(--space-lg);">
+    <h1>Stylesheet</h1>
+    <p>A live, rendered reference for every token and component class in
+    <code>main.css</code>. Not linked from anywhere on the live site — no
+    nav entry, no sitemap entry — and excluded from search if the site
+    uses <code>website-search</code>. Exists purely so a human (or a
+    future Claude session) can see what each class actually looks like
+    without reading the CSS. Update this page in the same change
+    whenever a token, component, or typography rule changes.</p>
+
+    <h2>Typography</h2>
+    <div class="demo-block">
+      <h1>Heading 1</h1>
+      <h2>Heading 2</h2>
+      <h3>Heading 3</h3>
+      <p>Body paragraph text, including <strong>bold text</strong>,
+      <em>italic text</em>, and a <a href="#">standard link</a>. Inline
+      <code>code</code> uses the monospace stack.</p>
+    </div>
+    <p class="demo-label"><code>h1</code> · <code>h2</code> · <code>h3</code> · <code>p</code>, <code>strong</code>, <code>em</code>, <code>a</code>, <code>code</code></p>
+
+    <h2>Color tokens</h2>
+    <div class="table-wrapper">
+      <table class="swatch-table">
+        <thead><tr><th>Token</th><th>Swatch</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><code>--color-primary</code></td><td><span class="swatch" style="background:#1a5fb4;color:#ffffff;">#1a5fb4</span></td><td>Links, primary actions</td></tr>
+          <tr><td><code>--color-text</code></td><td><span class="swatch" style="background:#1a1a1a;color:#ffffff;">#1a1a1a</span></td><td>Body text</td></tr>
+          <tr><td><code>--color-bg</code></td><td><span class="swatch" style="background:#ffffff;color:#1a1a1a;border:1px solid #ddd;">#ffffff</span></td><td>Page background</td></tr>
+          <tr><td><code>--color-bg-alt</code></td><td><span class="swatch" style="background:#f5f5f5;color:#1a1a1a;">#f5f5f5</span></td><td>Alternating sections</td></tr>
+          <tr><td><code>--color-border</code></td><td><span class="swatch" style="background:#dddddd;color:#1a1a1a;">#dddddd</span></td><td>Dividers, card borders</td></tr>
+          <!-- replace this table with the full locked grayscale + semantic
+               token table from §6 if this site uses the monochrome spec -->
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Buttons</h2>
+    <div class="demo-block">
+      <button class="btn btn-primary">Primary button</button>
+      <button class="btn btn-outline">Outline button</button>
+    </div>
+    <p class="demo-label"><code>.btn.btn-primary</code> · <code>.btn.btn-outline</code></p>
+
+    <h2>Cards</h2>
+    <div class="demo-block">
+      <div class="card">
+        <h3 class="card__title">Card title</h3>
+        <p>Card body text.</p>
+      </div>
+    </div>
+    <p class="demo-label"><code>.card</code> · <code>.card__title</code> · <code>.card--featured</code> (add the modifier to see its border-color change)</p>
+
+    <h2>Lists &amp; tables</h2>
+    <div class="demo-block">
+      <ul>
+        <li>Bulleted item</li>
+        <li>Another item</li>
+      </ul>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Column A</th><th>Column B</th></tr></thead>
+          <tbody><tr><td>Row 1</td><td>Value</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="demo-label">Plain <code>ul</code>/<code>ol</code>/<code>li</code>; tables wrapped in <code>.table-wrapper</code></p>
+  </main>
+
+  <!-- site footer, identical to every other page -->
+</body>
+</html>
+```
+
+## 8. Full verification checklist
 
 Run all of these before calling a build or WordPress migration done:
 
@@ -824,3 +970,16 @@ If monochrome was chosen, also check:
   fallback produce the same result when no explicit choice is stored.
 - `--muted-foreground` passes AA contrast against `--background` and
   `--background-alt` in both themes.
+
+Then, for the style guide page:
+
+- `/stylesheet/` exists and is reachable by typing the URL directly.
+- It carries `noindex, nofollow` and has no incoming link from nav,
+  footer, home page, or sitemap.
+- Every token actually defined in `main.css`'s Tokens section has a
+  swatch on the page; every named class in the Components section has a
+  live, labeled demo.
+- If the site has a light/dark toggle, every example still reads
+  correctly in both themes.
+- Every example renders via its real `main.css` class, unmodified — the
+  page-local `<style>` block supplies demo scaffolding only.
